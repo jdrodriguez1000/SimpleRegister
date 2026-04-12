@@ -41,6 +41,11 @@ graph TD
     F03G --> F03RF["[TSK-I1-F03-RF] Pattern Refactor"]
     F03RF --> F03V["[TSK-I1-F03-V] Val Integration"]
     F03V --> F03C["[TSK-I1-F03-C] Cert Resilience"]
+    
+    F03C --> Z01A["[TSK-I1-Z01-A] Stage Audit"]
+    Z01A --> Z02S["[TSK-I1-Z02-S] Exec Summary"]
+    Z02S --> Z03H["[TSK-I1-Z03-H] Handoff & Lessons"]
+    Z03H --> Z04P["[TSK-I1-Z04-P] Final Push"]
 
     style B01R fill:#f96,stroke:#333
     style B01V fill:#9cf,stroke:#333
@@ -151,6 +156,20 @@ graph TD
 - [ ] `[TSK-I1-F03-C]` **Final Resilience Cert**: Auditoría final de la Iteración 1.
     - **Agente responsable**: `frontend-reviewer`
     - **DoD**: Firma de cumplimiento total: alineación técnica y funcional al 100% con la PROJECT_spec.md.
+
+### ## Bloque 7 — Cierre de Iteración (Stage-Gate) [Etapa 1.7.0]
+- [ ] `[TSK-I1-Z01-A]` **Auditoría Técnica de Etapa**: Certificar trazabilidad entre Backlog y Código Real.
+    - **Agente responsable**: `stage-auditor`
+    - **DoD**: Reporte de auditoría generado en `audits/governance/stage_audit_i1.md` confirmando que el 100% de los DoD se han cumplido físicamente en el repositorio.
+- [ ] `[TSK-I1-Z02-S]` **Cierre Ejecutivo y Valor**: Traducción de hitos técnicos a resumen de negocio para el cliente.
+    - **Agente responsable**: `stage-closer`
+    - **DoD**: Generación del documento de cierre (Executive Summary) con los logros de la Iteración 1 y el estado de la línea de base.
+- [ ] `[TSK-I1-Z03-H]` **Handoff & Lecciones Aprendidas**: Consolidación de conocimiento y fricciones técnicas detectadas.
+    - **Agente responsable**: `session-closer`
+    - **DoD**: Creación de `PROJECT_handoff.md` y actualización del log de lecciones aprendidas para optimizar la Iteración 2.
+- [ ] `[TSK-I1-Z04-P]` **Sincronización Final (Git Push)**: Empuje final de la etapa consolidada a GitHub.
+    - **Agente responsable**: `devops-integrator`
+    - **DoD**: Ejecución exitosa del workflow `/git-push` enviando la etapa completa y certificada al repositorio remoto.
 
 ---
 *Este backlog se expandirá iteración a iteración. Las tareas completadas serán marcadas con [x] y permanecen como registro de auditoría.*
