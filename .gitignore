@@ -21,6 +21,7 @@ out/
 .env.production.local
 *.pem
 *.key
+*.cert
 
 # 🐳 Docker y Virtualización
 .docker/
