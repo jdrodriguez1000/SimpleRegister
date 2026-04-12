@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p C:/Users/USUARIO/Documents/Work/SimpleRegister/scripts/infra)",
+      "Bash(mkdir -p C:/Users/USUARIO/Documents/Work/SimpleRegister/tests/infra)",
+      "Bash(chmod +x C:/Users/USUARIO/Documents/Work/SimpleRegister/scripts/infra/port_red_check.sh)",
+      "Bash(bash C:/Users/USUARIO/Documents/Work/SimpleRegister/scripts/infra/port_red_check.sh)",
+      "Bash(npm install:*)",
+      "Bash(chmod +x C:/Users/USUARIO/Documents/Work/SimpleRegister/scripts/infra/setup_env.sh)",
+      "Bash(bash C:/Users/USUARIO/Documents/Work/SimpleRegister/scripts/infra/setup_env.sh)",
+      "Bash(docker --version)",
+      "Bash(docker compose:*)",
+      "Bash(docker-compose --version)",
+      "Bash(docker info:*)",
+      "Bash(python3 -c \"import secrets; print\\(secrets.token_urlsafe\\(24\\)\\)\")",
+      "Bash(node -e \"const {randomBytes}=require\\('crypto'\\);console.log\\(randomBytes\\(24\\).toString\\('base64url'\\)\\)\")",
+      "Bash(chmod +x C:/Users/USUARIO/Documents/Work/SimpleRegister/tests/infra/connectivity_test.sh)",
+      "Bash(bash C:/Users/USUARIO/Documents/Work/SimpleRegister/tests/infra/connectivity_test.sh)",
+      "Bash(grep -v \"#\\\\|\\\\${\")",
+      "Bash(xargs echo:*)"
+    ]
+  }
+}
