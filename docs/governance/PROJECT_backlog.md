@@ -6,7 +6,11 @@
 ### ## Mapa de Dependencias
 ```mermaid
 graph TD
-    B01R["[TSK-I1-B01-R] Infra Tests"] --> B01G["[TSK-I1-B01-G] Docker Setup"]
+    G01S["[TSK-I0-G01-S] Base Gov"] --> G02A["[TSK-I0-G02-A] Agent Eco"]
+    G02A --> G03K["[TSK-I0-G03-K] Repo Kickoff"]
+    G03K --> B01R["[TSK-I1-B01-R] Infra Tests"]
+    
+    B01R --> B01G["[TSK-I1-B01-G] Docker Setup"]
     B01G --> B01RF["[TSK-I1-B01-RF] Clean Setup"]
     B01RF --> B01V["[TSK-I1-B01-V] Val Infra"]
     B01V --> B01C["[TSK-I1-B01-C] Cert Infra"]
@@ -52,6 +56,19 @@ graph TD
     style F03C fill:#f9f,stroke:#333
     style B01RF fill:#ddd,stroke:#333,stroke-dasharray: 5 5
 ```
+
+---
+
+### ## Bloque 0 — Gobernanza y Kickoff [Etapa 1.0.0]
+- [x] `[TSK-I0-G01-S]` **Gobernanza Base**: Construcción y validación de la línea de base documental (Scope, Plan, Architecture, Spec).
+    - **Agente responsable**: `Google AntiGravity`
+    - **DoD**: Documentos autorizados bajo el protocolo Devil's Advocate; todos los esquemas técnicos validados 1:1.
+- [x] `[TSK-I0-G02-A]` **Ecosistema de Agentes**: Perfilado y creación de habilidades para la flota backend, frontend y devops.
+    - **Agente responsable**: `Google AntiGravity`
+    - **DoD**: Archivos `.agents/*.md` y `skills/*.md` creados y vinculados en `AGENTS.md`.
+- [x] `[TSK-I0-G03-K]` **Conectividad y Repo**: Vinculación de GitHub, higiene de `.gitignore` y primer push de línea de base.
+    - **Agente responsable**: `Google AntiGravity`
+    - **DoD**: Conectividad exitosa con el remoto; repo limpio de temporales y secretos; rama `main` protegida.
 
 ---
 
