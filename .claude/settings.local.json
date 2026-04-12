@@ -17,7 +17,11 @@
       "Bash(chmod +x C:/Users/USUARIO/Documents/Work/SimpleRegister/tests/infra/connectivity_test.sh)",
       "Bash(bash C:/Users/USUARIO/Documents/Work/SimpleRegister/tests/infra/connectivity_test.sh)",
       "Bash(grep -v \"#\\\\|\\\\${\")",
-      "Bash(xargs echo:*)"
+      "Bash(xargs echo:*)",
+      "Bash(npx jest:*)",
+      "Bash(node -e \"require\\('next/server'\\)\")",
+      "Bash(node -e \"try { require\\('next/server'\\); console.log\\('OK'\\); } catch\\(e\\) { console.log\\('ERR:', e.message.slice\\(0,120\\)\\); }\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }

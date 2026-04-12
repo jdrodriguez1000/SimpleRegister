@@ -90,19 +90,19 @@ graph TD
     - **DoD**: Certificación de cumplimiento de arquitectura Docker y validación de contrato de entorno s/ PROJECT_spec.md.
 
 ### ## Bloque 2 — Health API & SOP [Etapa 1.2.0]
-- [ ] `[TSK-I1-B02-R]` **SOP Format Unit Test**: Crear suite de tests que valide: Regex UUID, ISO-8601 (ms) y Latencia (float-2).
+- [x] `[TSK-I1-B02-R]` **SOP Format Unit Test**: Crear suite de tests que valide: Regex UUID, ISO-8601 (ms) y Latencia (float-2).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests de contrato confirman fallo (RED) por ausencia de lógica; validación obligatoria del Regex UUIDv4 estricto dictado en la Spec (línea 130) para la cabecera `X-Health-Key`.
-- [ ] `[TSK-I1-B02-G]` **Health Endpoint Green**: Implementación de middleware CORS (Allowed Origins), headers de seguridad (SOP), validación de servicios externos y endpoint `/api/v1/health`.
+- [x] `[TSK-I1-B02-G]` **Health Endpoint Green**: Implementación de middleware CORS (Allowed Origins), headers de seguridad (SOP), validación de servicios externos y endpoint `/api/v1/health`.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Endpoint responde JSON s/ Spec; realiza cálculo de latencia acumulada (float-2) por cada servicio y valida `X-Health-Key`.
-- [ ] `[TSK-I1-B02-RF]` **Health SOP Refactor**: Limpieza de lógica de controlador y aplicación de helpers de respuesta.
+- [x] `[TSK-I1-B02-RF]` **Health SOP Refactor**: Limpieza de lógica de controlador y aplicación de helpers de respuesta.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Lógica de validación UUID extraída a helper independiente; controlador desacoplado de la lógica de servicios externos.
-- [ ] `[TSK-I1-B02-V]` **Health Contract Validation**: Ejecución de la suite completa de tests de contrato (Mocha/Jest).
+- [x] `[TSK-I1-B02-V]` **Health Contract Validation**: Ejecución de la suite completa de tests de contrato (Mocha/Jest).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Suite de tests pasa al 100% cubriendo todos los formatos estrictos (UUID, ISO, Latencia) y códigos de error (400, 403, 406); Cobertura de tests unitarios > 90% en lógica de salud.
-- [ ] `[TSK-I1-B02-C]` **SOP Certification**: Revisión de SOP, cumplimiento de CORS y Negociación de Contenido.
+- [x] `[TSK-I1-B02-C]` **SOP Certification**: Revisión de SOP, cumplimiento de CORS y Negociación de Contenido.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Certificación de cumplimiento 100% con esquemas, headers, matriz CORS y SOP dictados en PROJECT_spec.md.
 
