@@ -1,0 +1,67 @@
+# =============================================================================
+# .dockerignore — SimpleRegister
+# Optimiza el contexto de build Docker: excluye artefactos, secretos y
+# archivos de desarrollo que no son necesarios en la imagen final.
+# =============================================================================
+
+# Dependencias (se reinstalan dentro del contenedor)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Artefactos de build
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Secretos — NUNCA en la imagen Docker
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Docker (evitar recursión)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Control de versiones
+.git/
+.gitignore
+
+# IDEs y herramientas del sistema
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Tests y cobertura (no van a producción)
+coverage/
+.nyc_output/
+cypress/
+playwright-report/
+test-results/
+
+# Documentación y gobernanza
+docs/
+audits/
+*.md
+!README.md
+
+# Scripts de infraestructura (no necesarios en la imagen)
+scripts/
+
+# Agentes y configuración local
+.agents/
+.claude/
+.gemini/
+tmp.md
+*.tmp
+*.bak

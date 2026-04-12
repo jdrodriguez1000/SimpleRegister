@@ -73,19 +73,19 @@ graph TD
 ---
 
 ### ## Bloque 1 — Infraestructura y Entorno [Etapa 1.1.0]
-- [ ] `[TSK-I1-B01-R]` **Infra Red-Check**: Creación de script de validación de puertos para App, DB y Redis.
+- [x] `[TSK-I1-B01-R]` **Infra Red-Check**: Creación de script de validación de puertos para App, DB y Redis.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Script (utilizando `nc` o `nmap`) confirma ausencia de servicios públicos (Estado RED) y valida específicamente que los puertos 5432 (DB) y 6379 (Redis) deniegan acceso externo directo (Security Red-Check).
-- [ ] `[TSK-I1-B01-G]` **Dockerization Base**: Configuración de `docker-compose.yml`, entornos de Node.js y plantilla `.env.example`.
+- [x] `[TSK-I1-B01-G]` **Dockerization Base**: Configuración de `docker-compose.yml`, entornos de Node.js y plantilla `.env.example`.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: Todos los contenedores levantan con `healthcheck` saludable; el archivo `.env.example` contiene todas las variables de la Spec; generación automática de `.env` inicial con un `X-Health-Key` (UUIDv4) semilla para desarrollo.
-- [ ] `[TSK-I1-B01-RF]` **Infra Refactor**: Limpieza de archivos Docker e ignorado de secretos.
+- [x] `[TSK-I1-B01-RF]` **Infra Refactor**: Limpieza de archivos Docker e ignorado de secretos.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: `.gitignore` configurado correctamente; implementación obligatoria de Multistage Builds para optimización de imagen final.
-- [ ] `[TSK-I1-B01-V]` **Infra Validation**: Ejecución de suite de conectividad y persistencia en entorno de integración dockerizado (Container-to-Container).
+- [x] `[TSK-I1-B01-V]` **Infra Validation**: Ejecución de suite de conectividad y persistencia en entorno de integración dockerizado (Container-to-Container).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Reporte de conectividad exitosa entre App-Redis-DB y validación de carga correcta de secretos desde el entorno controlado.
-- [ ] `[TSK-I1-B01-C]` **Infra Certification**: Auditoría de aislamiento de red y seguridad de entorno.
+- [x] `[TSK-I1-B01-C]` **Infra Certification**: Auditoría de aislamiento de red y seguridad de entorno.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Certificación de cumplimiento de arquitectura Docker y validación de contrato de entorno s/ PROJECT_spec.md.
 
