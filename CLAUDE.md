@@ -20,6 +20,16 @@ Este archivo provee orientación a Claude Code (claude.ai/code) y a los agentes 
 | **Infraestructura**   | Docker Compose (Optimizado para 2GB RAM), GitHub Actions  |
 | **Notificaciones**    | SMTP con Backoff Exponencial (Resiliency Pattern)         |
 
+
+## 🌐 Fuentes de Verdad Vivas (Live Context)
+
+Para garantizar la paridad técnica con las versiones más recientes y eliminar el "vibecoding", el agente **DEBE** acceder y procesar estas URLs antes de proponer cambios en la `PROJECT_spec.md` o implementar lógica:
+
+* **Next.js 15 (App Router & Server Actions):** [https://context7.com/vercel/next.js/llms.txt?tokens=10000](https://context7.com/vercel/next.js/llms.txt?tokens=10000)
+* **Drizzle ORM (Type-safe SQL):** [https://context7.com/drizzle-team/drizzle-orm/llms.txt?tokens=10000](https://context7.com/drizzle-team/drizzle-orm/llms.txt?tokens=10000)
+
+> **Directiva de Uso:** Si el agente detecta discrepancias entre su memoria interna y el contenido de estas URLs, la URL siempre prevalece como Fuente de Verdad.
+
 ## Arquitectura
 
 Arquitectura de **Unified Runtime con Aislamiento de Capas**:
@@ -76,6 +86,12 @@ Esquemas clave:
 3.  **Cadena de Confianza (Tokens)**: El inicio de cualquier tarea requiere un token de auditoría en estado **`AUTORIZADO`**.
 4.  **Control de Cambios (CC) Obligatorio**: No se permite modificar la línea base autorizada (Gobernanza o etapas cerradas) sin el protocolo `change-control`.
 
+
+## Soberanía Documental y SDD (Spec-Driven Development)
+- El código es un reflejo estricto de la documentación. No se improvisa.
+- **Ciclo de Vida:** `Entrevista de Requisitos` -> `Consulta de Live Context (URLs)` -> `Actualización de PROJECT_spec.md` -> `Aprobación de Spec` -> `Generación de Código`.
+- Queda prohibido el uso de APIs obsoletas (ej. `getServerSideProps` en Next 15 o sintaxis de Prisma en Drizzle).
+
 ## Documentos de Gobernanza
 
 Ubicados en `docs/governance/`:
@@ -84,6 +100,7 @@ Ubicados en `docs/governance/`:
 - [PROJECT_plan.md](docs/governance/PROJECT_plan.md) — Hoja de ruta por iteraciones.
 - [PROJECT_spec.md](docs/governance/PROJECT_spec.md) — Contratos técnicos y esquemas JSON.
 - [PROJECT_backlog.md](docs/governance/PROJECT_backlog.md) — Lista atómica de tareas (TDD Flow).
+
 
 ## Protocolo de Control de Cambios (CC)
 
@@ -111,7 +128,7 @@ Todo desarrollo sigue el flujo del **Protocolo de Granularidad Operativa**:
 
 Operación bajo el flujo de **Soberanía de Ramas**:
 1.  **Ramas de Estabilidad**: `main` y `dev` son de solo lectura. El código solo ingresa vía Pull Request (PR).
-2.  **Ramas de Trabajo**: Nomenclatura obligatoria `feat/f[F]_[E]_[nombre]` (ej: `feat/f1_1.1_setup`).
+2.  **Ramas de Trabajo**: Nomenclatura obligatoria, basada en la iteracion y el bloque `feat/i[I]_b[B]_[nombre_corto]` (ej: `feat/i1_b1_infra_setup`).
 3.  **Commits Semánticos (Español)**: `prefijo: descripción corta en minúsculas`.
     - `feat:` | `fix:` | `docs:` | `refactor:` | `test:` | `chore:`.
 4.  **Sincronización**: Uso obligatorio de `git pull --rebase`. Prohibida la fuerza (`--force`) sin autorización.
@@ -121,8 +138,9 @@ Operación bajo el flujo de **Soberanía de Ramas**:
 
 ### **Al Iniciar:**
 1.  Leer `CLAUDE.md`.
-2.  Revisar estado de tokens de auditoría en `audits/governance/`.
-3.  Consultar `PROJECT_backlog.md` para identificar la siguiente tarea unitaria.
+2.  Consultar `PROJECT_handoff.md` para entender el estado actual del proyecto.
+3.  Revisar estado de tokens de auditoría en `audits/governance/`.
+4.  Consultar `PROJECT_backlog.md` para identificar la siguiente tarea unitaria.
 
 ### **Al Cerrar sesión:**
 1.  Actualizar `PROJECT_backlog.md` con las tareas completadas `[x]`.

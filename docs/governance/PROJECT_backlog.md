@@ -124,67 +124,67 @@ graph TD
     - **DoD**: Certificación de resiliencia (429 activado tras 10 req/min) y latencia media < 200ms (SLA Green) según PROJECT_spec.md.
 
 ### ## Bloque 4 — Dashboard de Salud: Estructura [Etapa 1.4.0]
-- [ ] `[TSK-I1-F01-R]` **Frontend Arch Red**: Test de arquitectura y carga de variables de entorno (Next.js).
+- [x] `[TSK-I1-F01-R]` **Frontend Arch Red**: Test de arquitectura y carga de variables de entorno (Next.js).
     - **Agente responsable**: `frontend-tester`
     - **DoD**: El linter indica inconsistencias y falla el build (RED) por tipos ausentes definidos en PROJECT_spec.md.
-- [ ] `[TSK-I1-F01-G]` **App Bootstrap Green**: Inicialización de Next.js 15, configuración de TS, Core CSS y definición de interfaces contractuales.
+- [x] `[TSK-I1-F01-G]` **App Bootstrap Green**: Inicialización de Next.js 15, configuración de TS, Core CSS y definición de interfaces contractuales.
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Aplicación base renderiza Skeleton Loaders; el archivo `types/health.ts` refleja 1:1 la interfaz de la Spec.
-- [ ] `[TSK-I1-F01-RF]` **FE Arch Refactor**: Limpieza de layout global y eliminación de boilerplate innecesario de Next.js.
+- [x] `[TSK-I1-F01-RF]` **FE Arch Refactor**: Limpieza de layout global y eliminación de boilerplate innecesario de Next.js.
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Carpeta `app/` organizada según arquitectura; tipos exportados centralmente; configuración de paths `@/*` verificada.
-- [ ] `[TSK-I1-F01-V]` **Bootstrap Validation**: Verificación de carga de variables de entorno y consistencia de tipos.
+- [x] `[TSK-I1-F01-V]` **Bootstrap Validation**: Verificación de carga de variables de entorno y consistencia de tipos.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Reporte de build exitoso; validación de que las `env` se inyectan correctamente y que no hay `any` en los modelos de API.
-- [ ] `[TSK-I1-F01-C]` **FE Arch Certification**: Auditoría de la estructura de carpetas y stack premium.
+- [x] `[TSK-I1-F01-C]` **FE Arch Certification**: Auditoría de la estructura de carpetas y stack premium.
     - **Agente responsable**: `frontend-reviewer`
     - **DoD**: Certificación de alineación con PROJECT_architecture.md y contratos de tipos de la PROJECT_spec.md.
 
 ### ## Bloque 5 — UI Logic & States [Etapa 1.5.0]
-- [ ] `[TSK-I1-F02-R]` **UI State Machine Red**: Crear unit tests para transiciones Idle -> Loading -> Success/Error.
+- [x] `[TSK-I1-F02-R]` **UI State Machine Red**: Crear unit tests para transiciones Idle -> Loading -> Success/Error.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Tests confirman el estado RED al no existir el Hook useHealth, validando la necesidad de impl.
-- [ ] `[TSK-I1-F02-G]` **Indicators & Dashboard Green**: Implementar componentes de UI y lógicas de visualización vinculadas a Mocks.
+- [x] `[TSK-I1-F02-G]` **Indicators & Dashboard Green**: Implementar componentes de UI y lógicas de visualización vinculadas a Mocks.
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Interfaz visual muestra estados dinámicos para los 4 servicios (DB, Redis, Email, Captcha); los indicadores responden al Hook.
-- [ ] `[TSK-I1-F02-RF]` **UI Logic Refactor**: Extracción de componentes atómicos y limpieza de hooks personalizados.
+- [x] `[TSK-I1-F02-RF]` **UI Logic Refactor**: Extracción de componentes atómicos y limpieza de hooks personalizados.
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Lógica de presentación separada de la lógica de datos; estilos definidos en componentes de un solo propósito.
-- [ ] `[TSK-I1-F02-V]` **Visual States Validation**: Test de renderizado de componentes indicadores de salud.
+- [x] `[TSK-I1-F02-V]` **Visual States Validation**: Test de renderizado de componentes indicadores de salud.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Validación de que los colores cambian según SLA: Green (<200ms), Warning (200-500ms) y Critical (>500ms o error).
-- [ ] `[TSK-I1-F02-C]` **Visual Certification**: Validación de diseño premium y micro-animaciones.
+- [x] `[TSK-I1-F02-C]` **Visual Certification**: Validación de diseño premium y micro-animaciones.
     - **Agente responsable**: `frontend-reviewer`
     - **DoD**: Cumplimiento visual 100% vs Spec; validación de micro-animaciones (smooth 60fps) y score de accesibilidad/performance Lighthouse > 90.
 
 ### ## Bloque 6 — Capa de Integración & Resiliencia FE [Etapa 1.6.0]
-- [ ] `[TSK-I1-F03-R]` **Integration Layer Red**: Tests de consumo de API real con intercepción de fallos.
+- [x] `[TSK-I1-F03-R]` **Integration Layer Red**: Tests de consumo de API real con intercepción de fallos.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Tests confirman fallo (RED) en consumo de API real, validando la lógica de error requerida por la Spec.
-- [ ] `[TSK-I1-F03-G]` **API Layer Impl Green**: Implementar Service Layer y lógica de reintento exponencial (Backoff).
+- [x] `[TSK-I1-F03-G]` **API Layer Impl Green**: Implementar Service Layer y lógica de reintento exponencial (Backoff).
     - **Agente responsable**: `frontend-coder`
     - **DoD**: El dashboard consume `/api/v1/health` real y reintenta automáticamente en caso de 503/429.
-- [ ] `[TSK-I1-F03-RF]` **Pattern Refactor**: Implementación de interceptores Axios/Fetch y manejo de errores global.
+- [x] `[TSK-I1-F03-RF]` **Pattern Refactor**: Implementación de interceptores Axios/Fetch y manejo de errores global.
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Lógica de reintento centralizada; manejo de códigos HTTP (429, 503) mapeado a acciones UI globales.
-- [ ] `[TSK-I1-F03-V]` **Integration Validation**: E2E Tests de flujo de recuperación.
+- [x] `[TSK-I1-F03-V]` **Integration Validation**: E2E Tests de flujo de recuperación.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Simulación de error manual muestra banner de reintento y éxito tras restauración de API.
-- [ ] `[TSK-I1-F03-C]` **Final Resilience Cert**: Auditoría final de la Iteración 1.
+- [x] `[TSK-I1-F03-C]` **Final Resilience Cert**: Auditoría final de la Iteración 1.
     - **Agente responsable**: `frontend-reviewer`
     - **DoD**: Firma de cumplimiento total: alineación técnica y funcional al 100% con la PROJECT_spec.md.
 
 ### ## Bloque 7 — Cierre de Iteración (Stage-Gate) [Etapa 1.7.0]
-- [ ] `[TSK-I1-Z01-A]` **Auditoría Técnica de Etapa**: Certificar trazabilidad entre Backlog y Código Real.
+- [x] `[TSK-I1-Z01-A]` **Auditoría Técnica de Etapa**: Certificar trazabilidad entre Backlog y Código Real.
     - **Agente responsable**: `stage-auditor`
     - **DoD**: Reporte de auditoría generado en `audits/governance/stage_audit_i1.md` confirmando que el 100% de los DoD se han cumplido físicamente en el repositorio.
-- [ ] `[TSK-I1-Z02-S]` **Cierre Ejecutivo y Valor**: Traducción de hitos técnicos a resumen de negocio para el cliente.
+- [x] `[TSK-I1-Z02-S]` **Cierre Ejecutivo y Valor**: Traducción de hitos técnicos a resumen de negocio para el cliente.
     - **Agente responsable**: `stage-closer`
     - **DoD**: Generación del documento de cierre (Executive Summary) con los logros de la Iteración 1 y el estado de la línea de base.
-- [ ] `[TSK-I1-Z03-H]` **Handoff & Lecciones Aprendidas**: Consolidación de conocimiento y fricciones técnicas detectadas.
+- [x] `[TSK-I1-Z03-H]` **Handoff & Lecciones Aprendidas**: Consolidación de conocimiento y fricciones técnicas detectadas.
     - **Agente responsable**: `session-closer`
     - **DoD**: Creación de `PROJECT_handoff.md` y actualización del log de lecciones aprendidas para optimizar la Iteración 2.
-- [ ] `[TSK-I1-Z04-P]` **Sincronización Final (Git Push)**: Empuje final de la etapa consolidada a GitHub.
+- [x] `[TSK-I1-Z04-P]` **Sincronización Final (Git Push)**: Empuje final de la etapa consolidada a GitHub.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: Ejecución exitosa del workflow `/git-push` enviando la etapa completa y certificada al repositorio remoto.
 
