@@ -1,49 +1,24 @@
-# 🤝 Project Handoff — Bloque 3: Resiliencia y Rate Limiting (Etapa 1.3.0)
+# 🤝 Project Handoff - Bloque 0: Gobernanza & Kickoff
 
-**Estado Actual:** Bloque 3 certificado. El sistema soporta rate limiting persistido en Redis y falla con gracia (SYSTEM_DEGRADED) ante caídas de infraestructura.
-**Fecha de Corte:** 2026-04-12
-**Próxima Sesión Objetivo:** Iniciar Bloque 4 (Dashboard de Salud: Estructura) y Bloque 5 (UI Logic & States).
+**Estado Actual:** Cimientos consolidados y equipo de agentes configurado.
+**Fecha de Corte:** 12-04-2026
 
----
+## 📍 Punto de Control Técnico
+- **Infraestructura de Agentes:** 10 agentes configurados en `.agents/` con habilidades agnósticas y vinculados en `AGENTS.md`. Todos los perfiles cumplen con el estándar de metadatos YAML.
+- **Git Context:** Repositorio vinculado a `jdrodriguez1000/SimpleRegister`. Rama `main` activa. `.gitignore` proactivo implementado.
+- **Documentación SDD:** Scope, Architecture, Plan y Spec autorizados y sincronizados.
 
-## §1 Coordenadas de Ejecución
-
-| Campo | Valor |
-|---|---|
-| **Iteración** | Iteración 1 — Cimientos y Performance Base |
-| **Bloque Completado** | Bloque 3 — Resiliencia y Rate Limiting (Etapa 1.3.0) |
-| **Bloque Siguiente** | Bloque 4 — Dashboard de Salud: Estructura (Etapa 1.4.0) |
-| **Rama activa** | `feat/i1_b3_resilience` (lista para merge a `dev`) |
-| **Agentes que actuaron** | `backend-tester`, `backend-coder`, `backend-reviewer` |
-| **Capas impactadas** | Middlewares (Rate Limit), Redis Adapter, Fallback Layer |
+## 🏃 Próxima Tarea (Next Step)
+`[TSK-I1-B01-R]` - **Infra Red-Check**: El agente `backend-tester` debe iniciar la creación del script de validación de puertos para App, DB y Redis sobre el entorno local antes de la dockerización.
 
 ---
 
-## §2 Hitos de esta Sesión (Bloque 3)
-- ✅ **TSK-I1-B03-R/V**: Suite de tests de resiliencia y carga. Validación de:
-    - Límite de 10 peticiones/min para IPs públicas.
-    - Bypass de rate limit mediante `X-Health-Key` válida.
-    - Fallback `SYSTEM_DEGRADED` (503) ante caída de DB o Redis (Chaos tested).
-- ✅ **TSK-I1-B03-G**: Implementación de middleware de Rate Limiting con persistencia en Redis.
-- ✅ **TSK-I1-B03-C**: Certificación de performance: latencia media < 200ms bajo carga controlada.
+# 📚 Lecciones Aprendidas (Iteration 1 - Start)
 
----
+## ⚠️ Fricciones Detectadas
+- **Sintaxis de Comandos:** Se identificó que PowerShell en Windows no acepta el operador `&&` para comandos secuenciales, requiriendo `;`. Se debe instruir a los agentes a priorizar `;` o comandos individuales en entornos Windows.
+- **Ambigüedad en Colores:** Se ajustó la política de colores de agentes para alinear roles de implementación (Green) y revisión (Purple) de forma transversal entre Backend y Frontend.
 
-## §3 Mapa Táctico de Continuidad
-
-### ⚡ NEXT STEPS
-1. **Merge B03:** Integrar `feat/i1_b3_resilience` en `dev`.
-2. **Ciclo B04 (Frontend):** El `frontend-tester` debe ejecutar la validación de arquitectura Red (ausencia de envs/tipos).
-3. **App Bootstrap:** El `frontend-coder` iniciará la creación del scaffold de Next.js 15.
-
----
-
-## §4 Registro Histórico de Decisiones (Append-only ⚠️)
-
-### [2026-04-12] — Sesión: Bloque 2 - Health API & SOP
-- **Fricción:** La validación de UUIDv4 en Node.js requiere un Regex estricto para cumplir con el contrato de la Spec; el uso de librerías externas fue evitado para mantener el minimalismo.
-- **Optimización:** La centralización de la lógica de latencia en un helper permite reutilizarla en futuros endpoints de la Iteración 2 (Auth/Register).
-
-### [2026-04-12] — Sesión: Bloque 3 - Resiliencia y Rate Limiting
-- **Decisión:** Se optó por un esquema de "Fixed Window" para el rate limit por simplicidad y bajo overhead en Redis, cumpliendo con los 10 req/min de la Spec.
-- **Fricción:** El fallback `SYSTEM_DEGRADED` requirió un interceptor global de errores para asegurar que el payload JSON sea consistente incluso cuando la conexión a Redis falla (evitando el crash del proceso).
+## 💡 Optimizaciones
+- **Protocolo Devil's Advocate:** Resultó altamente efectivo para detectar gaps en la `PROJECT_spec.md` (ej. falta de headers de seguridad o Regex de UUID), ahorrando tiempo de refactorización futuro.
+- **Agnosticismo de Agentes:** Mantener las habilidades fuera de frameworks específicos (ej: generic "DB service" en lugar de Postgres) facilita enormemente el setup inicial en entornos híbridos.

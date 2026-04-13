@@ -21,7 +21,6 @@ out/
 .env.production.local
 *.pem
 *.key
-*.cert
 
 # 🐳 Docker y Virtualización
 .docker/
@@ -44,7 +43,6 @@ Thumbs.db
 # 🤖 IA y Agentes (Logs Locales y Temporales)
 .gemini/
 .claudecode/
-.claude/
 .history/
 tmp.md
 *.tmp

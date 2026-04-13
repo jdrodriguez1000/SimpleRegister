@@ -12,8 +12,8 @@ Este proyecto opera bajo una estructura de **Soberanía de Ramas**:
     * **Regla:** Prohibido el desarrollo directo. El código solo ingresa vía **Pull Request (PR)** tras pasar la validación de CI y la revisión.
     * **Excepción:** Se permiten pushes directos exclusivamente para correcciones urgentes en `docs/governance/` usando el prefijo `docs:`.
 
-2.  **Ramas de Trabajo (`feat/i[I]_b[B]_[nombre]`):**
-    * **Nomenclatura:** Basada en la Iteración y Bloque (ej: `feat/i1_b1_setup`).
+2.  **Ramas de Trabajo (`feat/f[F]_[E]_[nombre]`):**
+    * **Nomenclatura:** Basada en la Fase y Etapa (ej: `feat/f1_1.1_setup`).
     * **Vida Útil:** Temporales. Se eliminan tras el merge exitoso en `main`.
 
 ---
@@ -56,7 +56,7 @@ La comunicación en el historial de Git debe ser técnica y estricta:
 
 ## ✅ V. Auditoría de Sincronización (Push Final Check)
 
-- [ ] ¿La rama actual sigue la nomenclatura `feat/i...`?
+- [ ] ¿La rama actual sigue la nomenclatura `feat/f...`?
 - [ ] ¿El mensaje del commit describe el "qué" y no el "cómo"?
 - [ ] ¿Se ha realizado un `pull --rebase` antes de intentar subir los cambios?
 - [ ] ¿La Pull Request (PR) tiene una descripción clara de los RF/RNF afectados?
