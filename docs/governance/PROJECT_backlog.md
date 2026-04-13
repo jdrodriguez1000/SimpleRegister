@@ -158,33 +158,33 @@ graph TD
     - **DoD**: Cumplimiento visual 100% vs Spec; validación de micro-animaciones (smooth 60fps) y score de accesibilidad/performance Lighthouse > 90.
 
 ### ## Bloque 6 — Capa de Integración & Resiliencia FE [Etapa 1.6.0]
-- [ ] `[TSK-I1-F03-R]` **Integration Layer Red**: Tests de consumo de API real con intercepción de fallos.
+- [x] `[TSK-I1-F03-R]` **Integration Layer Red**: Tests de consumo de API real con intercepción de fallos.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Tests confirman fallo (RED) en consumo de API real, validando la lógica de error requerida por la Spec.
-- [ ] `[TSK-I1-F03-G]` **API Layer Impl Green**: Implementar Service Layer y lógica de reintento exponencial (Backoff).
+- [x] `[TSK-I1-F03-G]` **API Layer Impl Green**: Implementar Service Layer y lógica de reintento exponencial (Backoff).
     - **Agente responsable**: `frontend-coder`
     - **DoD**: El dashboard consume `/api/v1/health` real y reintenta automáticamente en caso de 503/429.
-- [ ] `[TSK-I1-F03-RF]` **Pattern Refactor**: Implementación de interceptores Axios/Fetch y manejo de errores global.
+- [x] `[TSK-I1-F03-RF]` **Pattern Refactor**: Implementación de interceptores Axios/Fetch y manejo de errores global.
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Lógica de reintento centralizada; manejo de códigos HTTP (429, 503) mapeado a acciones UI globales.
-- [ ] `[TSK-I1-F03-V]` **Integration Validation**: E2E Tests de flujo de recuperación.
+- [x] `[TSK-I1-F03-V]` **Integration Validation**: E2E Tests de flujo de recuperación.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Simulación de error manual muestra banner de reintento y éxito tras restauración de API.
-- [ ] `[TSK-I1-F03-C]` **Final Resilience Cert**: Auditoría final de la Iteración 1.
+- [x] `[TSK-I1-F03-C]` **Final Resilience Cert**: Auditoría final de la Iteración 1.
     - **Agente responsable**: `frontend-reviewer`
     - **DoD**: Firma de cumplimiento total: alineación técnica y funcional al 100% con la PROJECT_spec.md.
 
 ### ## Bloque 7 — Cierre de Iteración (Stage-Gate) [Etapa 1.7.0]
-- [ ] `[TSK-I1-Z01-A]` **Auditoría Técnica de Etapa**: Certificar trazabilidad entre Backlog y Código Real.
+- [x] `[TSK-I1-Z01-A]` **Auditoría Técnica de Etapa**: Certificar trazabilidad entre Backlog y Código Real.
     - **Agente responsable**: `stage-auditor`
     - **DoD**: Reporte de auditoría generado en `audits/governance/stage_audit_i1.md` confirmando que el 100% de los DoD se han cumplido físicamente en el repositorio.
-- [ ] `[TSK-I1-Z02-S]` **Cierre Ejecutivo y Valor**: Traducción de hitos técnicos a resumen de negocio para el cliente.
+- [x] `[TSK-I1-Z02-S]` **Cierre Ejecutivo y Valor**: Traducción de hitos técnicos a resumen de negocio para el cliente.
     - **Agente responsable**: `stage-closer`
     - **DoD**: Generación del documento de cierre (Executive Summary) con los logros de la Iteración 1 y el estado de la línea de base.
-- [ ] `[TSK-I1-Z03-H]` **Handoff & Lecciones Aprendidas**: Consolidación de conocimiento y fricciones técnicas detectadas.
+- [x] `[TSK-I1-Z03-H]` **Handoff & Lecciones Aprendidas**: Consolidación de conocimiento y fricciones técnicas detectadas.
     - **Agente responsable**: `session-closer`
     - **DoD**: Creación de `PROJECT_handoff.md` y actualización del log de lecciones aprendidas para optimizar la Iteración 2.
-- [ ] `[TSK-I1-Z04-P]` **Sincronización Final (Git Push)**: Empuje final de la etapa consolidada a GitHub.
+- [x] `[TSK-I1-Z04-P]` **Sincronización Final (Git Push)**: Empuje final de la etapa consolidada a GitHub.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: Ejecución exitosa del workflow `/git-push` enviando la etapa completa y certificada al repositorio remoto.
 
