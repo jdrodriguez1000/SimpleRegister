@@ -1,0 +1,111 @@
+/* globals.css — Estilos base del Dashboard de Salud
+ * Trazabilidad: TSK-I1-F01-G / TSK-I1-F01-RF
+ *
+ * Orden de capas:
+ *   1. @import "tailwindcss"  — utilidades de Tailwind v4
+ *   2. @layer base            — tokens de diseño y reset
+ *   3. @layer components      — clases de componentes reutilizables
+ */
+
+@import "tailwindcss";
+
+/* =============================================================================
+   Capa Base — Tokens de Diseño (Design Tokens)
+   ============================================================================= */
+
+@layer base {
+  :root {
+    /* Paleta — Fondo oscuro premium (dashboard técnico) */
+    --color-bg-primary:   #0a0e1a;
+    --color-bg-surface:   #111827;
+    --color-bg-card:      #1f2937;
+    --color-border:       #374151;
+
+    /* Paleta — Estados de Salud SLA */
+    --color-sla-green:    #10b981;  /* latencia < 200ms */
+    --color-sla-warning:  #f59e0b;  /* latencia 200-500ms */
+    --color-sla-critical: #ef4444;  /* latencia ≥ 500ms o error */
+
+    /* Paleta — Tipografía */
+    --color-text-primary:   #f9fafb;
+    --color-text-secondary: #9ca3af;
+    --color-text-muted:     #6b7280;
+
+    /* Espaciado base */
+    --radius-card: 0.75rem;
+    --radius-badge: 9999px;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+    min-height: 100dvh;
+    margin: 0;
+  }
+}
+
+/* =============================================================================
+   Capa de Componentes — Skeleton Loader (TSK-I1-F01-G)
+   ============================================================================= */
+
+@layer components {
+  /* Animación base del skeleton — pulso de brillo */
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .skeleton {
+    background-color: var(--color-bg-card);
+    border-radius: 0.375rem;
+    animation: skeleton-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Skeleton específico para tarjetas de indicador de dependencia */
+  .skeleton-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 1.25rem;
+    animation: skeleton-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Texto accesible para lectores de pantalla (patrón sr-only WCAG) */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Indicador de estado de servicio */
+  .status-dot {
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--radius-badge);
+    flex-shrink: 0;
+  }
+
+  .status-dot--green    { background-color: var(--color-sla-green); }
+  .status-dot--warning  { background-color: var(--color-sla-warning); }
+  .status-dot--critical { background-color: var(--color-sla-critical); }
+  .status-dot--muted    { background-color: var(--color-text-muted); }
+}

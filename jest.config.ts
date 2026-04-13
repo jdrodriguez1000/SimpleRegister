@@ -47,6 +47,9 @@ const config: Config = {
     },
   },
 
+  // Inicialización de entorno: carga variables NEXT_PUBLIC_* para tests FE
+  setupFiles: ['<rootDir>/jest.setup.ts'],
+
   // Supress output verbosity en CI
   verbose: true,
 };

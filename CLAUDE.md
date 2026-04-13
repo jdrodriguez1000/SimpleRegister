@@ -123,6 +123,7 @@ Operación bajo el flujo de **Soberanía de Ramas**:
 1.  Leer `CLAUDE.md`.
 2.  Revisar estado de tokens de auditoría en `audits/governance/`.
 3.  Consultar `PROJECT_backlog.md` para identificar la siguiente tarea unitaria.
+4.  Consultar `PROJECT_handoff.md` para entender el estado actual del proyecto.
 
 ### **Al Cerrar sesión:**
 1.  Actualizar `PROJECT_backlog.md` con las tareas completadas `[x]`.
