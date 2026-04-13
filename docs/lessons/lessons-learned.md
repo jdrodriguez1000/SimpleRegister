@@ -55,3 +55,19 @@
 
 > **Lección 3 — El `devops-integrator` necesita scaffold de aplicación:**
 > La infraestructura Docker no puede certificarse sin una aplicación mínima buildable. El `devops-integrator` debe tener claridad sobre qué mínimo de scaffold de app necesita para completar su tarea, y coordinarse explícitamente con el `frontend-coder` antes de B01-G para evitar solapamiento.
+
+---
+
+## Sesión: 2026-04-12 (Fase 1 / Etapa 1.3.0 — Bloque 3: Resiliencia y Rate Limiting)
+
+### ✅ Éxitos y Aciertos Técnicos
+- **Bypass de Rate Limit mediante Headers:** Implementar un bypass explícito para `X-Health-Key` en el middleware de Rate Limit permite que los monitores de salud no se vean bloqueados por su propia frecuencia de escaneo, garantizando observabilidad continua incluso bajo ataque.
+- **Interceptores de Fallback para Resiliencia:** El uso de bloques try/catch focalizados en el acceso a Redis permite que el middleware de Rate Limit degrade su comportamiento a "permitir todo" o "bloquear selectivo" en lugar de tirar el servidor. Se validó mediante `docker stop redis`.
+- **Validación de Caos en TDD:** Integrar la detención de contenedores como parte de la fase de validación (B03-V) forzó a que el código de producción fuera genuinamente resiliente desde su concepción, no como un parche posterior.
+
+### ⚠️ Fricciones y Desafíos
+- **Persistencia de Contadores en Caídas de Redis:** Durante los tests de caos, se detectó que si Redis cae y vuelve a subir, los contadores de Rate Limit se resetean (esperado), pero la transición de "Error de Conexión" a "Reconexión Exitosa" de la librería cliente puede generar latencias de bloqueo (hang) si no se configuran correctamente los timeouts de conexión.
+- **Latencia de Redis en Redes Docker:** Se observó que la latencia reportada por `health_latency_ms` para Redis a veces fluctuaba por encima de los 10ms debido a la resolución de nombres interna de Docker. Se recomienda usar la IP del servicio si la latencia se vuelve un problema crítico.
+
+### 💡 Lección Clave
+> **La resiliencia no es una feature, es una propiedad del sistema.** No basta con atrapar errores; se debe definir qué significa para el negocio un "estado degradado" y asegurar que el contrato de API se mantenga intacto (payload consistente) incluso cuando el backend está a medias. El test de caos es la única métrica real de resiliencia.

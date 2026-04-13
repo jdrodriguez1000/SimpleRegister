@@ -8,11 +8,16 @@
  *
  * Codigos cubiertos: 200 (publico), 200 (privado), 400, 406, 503
  * Segun spec: 403 no aplica en Iteracion 1 — clave incorrecta retorna 200 publico.
+ *
+ * Actualizacion B03-G: mock de rate_limit añadido para aislar la nueva dependencia
+ * introducida en TSK-I1-B03-G. Por defecto: peticion permitida (allowed: true),
+ * lo que preserva el comportamiento original de todos los tests de B02.
  */
 
 import { GET, OPTIONS } from '@/src/app/api/v1/health/route';
 import type { NextRequest } from 'next/server';
 import type { HealthCheckResult } from '@/src/lib/services/health_service';
+import type { RateLimitResult } from '@/src/lib/middleware/rate_limit';
 
 // =============================================================================
 // Mock del servicio de salud
@@ -22,6 +27,17 @@ const mockRunHealthCheck = jest.fn<Promise<HealthCheckResult>, []>();
 
 jest.mock('@/src/lib/services/health_service', () => ({
   runHealthCheck: () => mockRunHealthCheck(),
+}));
+
+// =============================================================================
+// Mock del middleware de Rate Limit (B03-G) — aísla la lógica de rate limit
+// Por defecto retorna peticion permitida para no interferir con los tests de B02.
+// =============================================================================
+
+const mockCheckRateLimit = jest.fn<Promise<RateLimitResult>, [string]>();
+
+jest.mock('@/src/lib/middleware/rate_limit', () => ({
+  checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...(args as [string])),
 }));
 
 // =============================================================================
@@ -74,6 +90,13 @@ beforeEach(() => {
   jest.clearAllMocks();
   // X_HEALTH_KEY para tests de modo privado
   process.env.X_HEALTH_KEY = 'a1b2c3d4-e5f6-4a7b-8c9d-e0f1a2b3c4d5';
+  // Rate limit: por defecto permitido (dentro del limite) para no interferir con B02
+  mockCheckRateLimit.mockResolvedValue({
+    allowed: true,
+    limit: 10,
+    remaining: 9,
+    resetAt: Math.floor(Date.now() / 1000) + 55,
+  });
 });
 
 afterEach(() => {

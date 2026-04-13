@@ -1,21 +1,27 @@
 /**
  * route.ts — Endpoint GET /api/v1/health
- * Trazabilidad: TSK-I1-B02-G — PROJECT_spec.md [Iteracion 1]
+ * Trazabilidad: TSK-I1-B03-G / TSK-I1-B03-RF — PROJECT_spec.md [Iteracion 1]
  * Agente: backend-coder
  *
- * Responsabilidad: controlador delgado. Solo coordina:
- *   1. Negociacion de contenido (Accept header)
- *   2. Validacion del X-Health-Key
- *   3. Delegacion al health_service
- *   4. Construccion de respuesta via sop_response helpers
- *   5. Aplicacion de headers CORS y Rate-Limit
+ * Responsabilidad: controlador delgado. Coordina en orden:
+ *   1. Negociacion de contenido (Accept header → 406)
+ *   2. Validacion del X-Health-Key (UUID v4 → modo publico o privado)
+ *   3. Rate Limiting (solo modo publico) via checkRateLimit → 429 | 503 Fail-Closed
+ *   4. Health Check via runHealthCheckWithFallback (interceptor de errores) → 503
+ *   5. Construccion de respuesta via sop_response helpers
+ *   6. Aplicacion de headers CORS y X-RateLimit-* (modo publico)
  *
- * NO contiene logica de negocio ni logica de validacion UUID en linea.
+ * B03-G: Agrega logica de Rate Limit (Fixed Window, Redis) y Fail-Closed (RNF9).
+ * B03-RF: Introduce runHealthCheckWithFallback como interceptor de errores centralizado.
+ *         Extrae extractClientIp y applyRateLimitHeaders como helpers de responsabilidad unica.
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { validateUUIDv4Header } from '@/src/lib/validators/health_validators';
 import { runHealthCheck } from '@/src/lib/services/health_service';
+import type { HealthCheckResult } from '@/src/lib/services/health_service';
+import { checkRateLimit } from '@/src/lib/middleware/rate_limit';
+import type { RateLimitResult } from '@/src/lib/middleware/rate_limit';
 import {
   buildPublicSuccessResponse,
   buildPrivateSuccessResponse,
@@ -40,6 +46,65 @@ function applyCorsHeaders(res: NextResponse, origin: string | null): void {
       'Access-Control-Expose-Headers',
       'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After'
     );
+  }
+}
+
+// =============================================================================
+// Helpers de Rate Limit (B03-RF — responsabilidad unica)
+// =============================================================================
+
+/**
+ * Extrae la IP real del cliente desde headers HTTP estandar.
+ * Prioridad: x-forwarded-for (proxy / Docker) → x-real-ip → fallback 'unknown'.
+ * No usa req.ip: no esta disponible en el runtime Node.js de Next.js.
+ */
+function extractClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-real-ip') ??
+    'unknown'
+  );
+}
+
+/**
+ * Aplica los headers X-RateLimit-* a una respuesta existente.
+ * Spec: "Exposed Headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset"
+ * Se incluyen en respuestas 2xx y 4xx/5xx cuando aplican para la IP (modo publico).
+ */
+function applyRateLimitHeaders(res: NextResponse, result: RateLimitResult): void {
+  res.headers.set('X-RateLimit-Limit', String(result.limit));
+  res.headers.set('X-RateLimit-Remaining', String(result.remaining));
+  res.headers.set('X-RateLimit-Reset', String(result.resetAt));
+}
+
+// =============================================================================
+// Interceptor de errores del Health Check (B03-RF — patron fallback centralizado)
+// =============================================================================
+
+/**
+ * Ejecuta runHealthCheck() envuelto en un interceptor de errores.
+ * Si el servicio de salud lanza una excepcion (ej. pool de conexiones agotado),
+ * el interceptor muta el resultado a un estado de degradacion critica total,
+ * evitando que el controlador reciba una excepcion no manejada.
+ *
+ * Esto garantiza que el endpoint SIEMPRE retorne JSON valido (RNF5),
+ * incluso ante fallos catasfroficos del servicio de verificacion.
+ */
+async function runHealthCheckWithFallback(): Promise<HealthCheckResult> {
+  try {
+    return await runHealthCheck();
+  } catch {
+    // Interceptor: excepcion capturada → resultado degradado critico total
+    return {
+      dependencies: {
+        database: 'disconnected',
+        redis: 'disconnected',
+        email_service: 'error',
+        captcha_service: 'error',
+      },
+      hasCriticalFailure: true,
+      unhealthyServices: ['database', 'redis'],
+    };
   }
 }
 
@@ -84,7 +149,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   let isPrivateMode = false;
 
   if (rawKey !== null) {
-    // Header presente: debe ser UUID v4 valido o responder 400
     if (!validateUUIDv4Header(rawKey)) {
       const body = buildErrorResponse(
         'MALFORMED_REQUEST',
@@ -95,18 +159,58 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return res;
     }
 
-    // UUID valido: verificar contra el secreto configurado
     const configuredKey = process.env.X_HEALTH_KEY;
     if (configuredKey && rawKey.toLowerCase() === configuredKey.toLowerCase()) {
       isPrivateMode = true;
     }
-    // Si es UUID valido pero incorrecto → modo publico (no 403 hasta que el bloque lo requiera)
-    // Spec: "Si el header es incorrecto (con formato valido), el servidor procesa en Modo Publico"
   }
 
-  // --- 3. Verificacion de servicios (solo en modo privado o siempre para 503) ---
+  // --- 3. Rate Limiting (solo modo publico — acceso privado exento) ---
+  // Spec: "Rate Limiting: 10 req/min por IP. Acceso Privado: Exento de Rate Limit."
+  // RNF9: "Si el sistema de cache falla, el acceso debe bloquearse por defecto."
+  let rateLimitResult: RateLimitResult | null = null;
+
+  if (!isPrivateMode) {
+    const clientIp = extractClientIp(req);
+    rateLimitResult = await checkRateLimit(clientIp);
+
+    if (rateLimitResult.failReason === 'CACHE_UNAVAILABLE') {
+      // RNF9 Fail-Closed: Redis no disponible para rate limiting.
+      // Ejecutar health check para obtener el panorama completo de servicios caidos,
+      // asegurandonos de incluir 'redis' dado que fallo la verificacion de rate limit.
+      const healthResult = await runHealthCheckWithFallback();
+      const unhealthySet = new Set([...healthResult.unhealthyServices, 'redis']);
+      const mergedUnhealthy = Array.from(unhealthySet);
+
+      const body = buildErrorResponse(
+        'SYSTEM_DEGRADED',
+        'Servicios críticos no disponibles.',
+        mergedUnhealthy as ServiceName[]
+      );
+      const res = NextResponse.json(body, { status: 503 });
+      applyCorsHeaders(res, origin);
+      return res;
+    }
+
+    if (!rateLimitResult.allowed) {
+      // HTTP 429: limite de ventana agotado para esta IP
+      const body = buildErrorResponse(
+        'RATE_LIMIT_EXCEEDED',
+        'Demasiadas peticiones. Límite de 10 req/min excedido.'
+      );
+      const res = NextResponse.json(body, { status: 429 });
+      applyRateLimitHeaders(res, rateLimitResult);
+      if (rateLimitResult.retryAfter !== undefined) {
+        res.headers.set('Retry-After', String(rateLimitResult.retryAfter));
+      }
+      applyCorsHeaders(res, origin);
+      return res;
+    }
+  }
+
+  // --- 4. Verificacion de servicios (modo privado: payload completo) ---
   if (isPrivateMode) {
-    const result = await runHealthCheck();
+    const result = await runHealthCheckWithFallback();
 
     if (result.hasCriticalFailure) {
       const body = buildErrorResponse(
@@ -126,9 +230,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return res;
   }
 
-  // --- 4. Modo publico: verificacion minima de servicios criticos para 503 ---
-  // El modo publico tambien debe retornar 503 si los servicios criticos estan caidos
-  const quickCheck = await runHealthCheck();
+  // --- 5. Verificacion de servicios (modo publico: payload minimo) ---
+  const quickCheck = await runHealthCheckWithFallback();
+
   if (quickCheck.hasCriticalFailure) {
     const body = buildErrorResponse(
       'SYSTEM_DEGRADED',
@@ -136,13 +240,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       quickCheck.unhealthyServices as ServiceName[]
     );
     const res = NextResponse.json(body, { status: 503 });
+    // Rate limit headers aplican incluso en 4xx/5xx (spec)
+    if (rateLimitResult) applyRateLimitHeaders(res, rateLimitResult);
     applyCorsHeaders(res, origin);
     return res;
   }
 
-  // --- 5. Respuesta publica exitosa ---
+  // --- 6. Respuesta publica exitosa ---
   const body = buildPublicSuccessResponse();
   const res = NextResponse.json(body, { status: 200 });
+  if (rateLimitResult) applyRateLimitHeaders(res, rateLimitResult);
   applyCorsHeaders(res, origin);
   return res;
 }

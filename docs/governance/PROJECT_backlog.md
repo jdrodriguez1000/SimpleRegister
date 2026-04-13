@@ -107,19 +107,19 @@ graph TD
     - **DoD**: Certificación de cumplimiento 100% con esquemas, headers, matriz CORS y SOP dictados en PROJECT_spec.md.
 
 ### ## Bloque 3 — Resiliencia y Rate Limiting [Etapa 1.3.0]
-- [ ] `[TSK-I1-B03-R]` **Load & Resilience Red**: Crear tests de ráfaga (Fixed Window), bypass con llave, caída de DB y caída de Redis.
+- [x] `[TSK-I1-B03-R]` **Load & Resilience Red**: Crear tests de ráfaga (Fixed Window), bypass con llave, caída de DB y caída de Redis.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Pruebas confirman: ausencia de limitación (RED), fallo en bypass de llave, caída de DB y fallo catastrófico/sin-fallback ante caída de Redis (RED esperado).
-- [ ] `[TSK-I1-B03-G]` **Redis Middleware Green**: Implementar persistencia de Rate Limit y lógica de fallback `SYSTEM_DEGRADED`.
+- [x] `[TSK-I1-B03-G]` **Redis Middleware Green**: Implementar persistencia de Rate Limit y lógica de fallback `SYSTEM_DEGRADED`.
     - **Agente responsable**: `backend-coder`
     - **DoD**: El sistema gestiona contadores en Redis y atrapa excepciones de DB para mutar el payload.
-- [ ] `[TSK-I1-B03-RF]` **Resilience Refactor**: Aplicación de patrones de resiliencia (Circuit Breaker ligero o Try/Catch centralizado).
+- [x] `[TSK-I1-B03-RF]` **Resilience Refactor**: Aplicación de patrones de resiliencia (Circuit Breaker ligero o Try/Catch centralizado).
     - **Agente responsable**: `backend-coder`
     - **DoD**: Middleware de Rate Limiting desacoplado; lógica de fallback inyectada mediante interceptores de error.
-- [ ] `[TSK-I1-B03-V]` **Resilience Validation**: Ejecución de tests de estrés y caos (Chaos Engineering ligero).
+- [x] `[TSK-I1-B03-V]` **Resilience Validation**: Ejecución de tests de estrés y caos (Chaos Engineering ligero).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests confirman 429 tras la 10ª petición pública, mientras que con `X-Health-Key` válida se mantiene 200 OK; validación de caos mediante detención manual (`docker stop`) de contenedores Redis/DB resultando en payload 503 SYSTEM_DEGRADED verificado.
-- [ ] `[TSK-I1-B03-C]` **Performance Certification**: Validación de tiempos de respuesta bajo carga.
+- [x] `[TSK-I1-B03-C]` **Performance Certification**: Validación de tiempos de respuesta bajo carga.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Certificación de resiliencia (429 activado tras 10 req/min) y latencia media < 200ms (SLA Green) según PROJECT_spec.md.
 
