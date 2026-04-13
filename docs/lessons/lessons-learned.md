@@ -71,3 +71,42 @@
 
 ### 💡 Lección Clave
 > **La resiliencia no es una feature, es una propiedad del sistema.** No basta con atrapar errores; se debe definir qué significa para el negocio un "estado degradado" y asegurar que el contrato de API se mantenga intacto (payload consistente) incluso cuando el backend está a medias. El test de caos es la única métrica real de resiliencia.
+
+---
+
+## Sesión: 2026-04-13 (Fase 1 / Etapas 1.4.0 y 1.5.0 — Bloques 4 y 5: Frontend Bootstrap + UI Logic)
+
+### ✅ Éxitos y Aciertos Técnicos
+
+1. **Separación de tipos consumidor / proveedor como primera decisión de arquitectura FE:** Crear `types/health.ts` en la raíz (para el frontend) separado de `src/lib/types/health_types.ts` (backend) desde el primer commit evitó el acoplamiento entre capas. El principio "el consumidor define su contrato" simplificó enormemente los tests y permitió que los tipos FE evolucionen independientemente de la implementación del servidor.
+
+2. **Funciones puras exportadas junto al hook — testabilidad en Node sin DOM:** Exportar `computeSLALevel`, `getInitialState` y `applyHealthResponse` como funciones puras desde `useHealth.ts` permitió un ciclo TDD completo (46 tests) en el entorno Node de Jest, sin necesidad de instalar `jsdom` ni `@testing-library/react`. El hook (`useHealth`) usa estas funciones internamente pero no es el objetivo de los tests unitarios de esta etapa.
+
+3. **Tablas de datos (`STATUS_CONFIG`, `SLA_COLOR`) como fuente de verdad visual:** Definir los mapeos de `ServiceStatus → dotClass/label` y `SLALevel → CSS variable` como constantes en los componentes (no hardcodeadas en JSX) permitió validarlos directamente en los tests de `visual_states.test.ts` con `readFileSync`. Esto crea un contrato de color verificable sin necesidad de renderizado DOM.
+
+4. **Boundary Server/Client en Next.js 15 — `page.tsx` como cáscara:** El patrón de mantener `page.tsx` como Server Component puro (solo renderiza `<HealthDashboard />`) y aislar `'use client'` en el componente de composición es el patrón óptimo para Next.js App Router. Reduce el bundle de JavaScript enviado al cliente y preserva la capacidad de SSR/SSG para la ruta raíz.
+
+5. **Animación skeleton 60fps con solo `opacity`:** Animar exclusivamente la propiedad `opacity` (0.4 ↔ 1.0) en el `@keyframes skeleton-pulse` garantiza que la animación se ejecute en el compositor GPU del navegador, sin disparar layout ni paint. La curva `cubic-bezier(0.4, 0, 0.6, 1)` (Material Design ease-in-out) produce una percepción de fluidez significativamente mejor que `ease` o `linear`.
+
+6. **Audit de certifación como código ejecutable:** El `frontend-reviewer` ejecutó la auditoría de TSK-I1-F01-C y TSK-I1-F02-C mediante scripts Node que leen y validan los archivos del proyecto (no solo revisión visual del código). Este patrón hace la certificación repetible, trazable y libre de sesgo humano para las propiedades estructurales.
+
+### ⚠️ Fricciones y Desafíos
+
+1. **`import type` no genera estado RED en ts-jest (transpileModule):** Para el estado RED de las suites de arquitectura (`arch_config.test.ts`) se usó inicialmente `import type { ... } from '@/types/health'`. ts-jest en modo `transpileModule` elimina los imports de tipo en compilación sin verificar si el módulo existe, por lo que el test no falla por "Cannot find module" — simplemente ejecuta y los valores de tipo se infieren como `string`. **Solución:** Para el RED de módulos FE, usar siempre imports de valor (`import { ... }`) que sí generan error de resolución de módulo en runtime.
+
+2. **Flag `s` (dotAll) de regex bloqueado por `target: ES2017` en tsconfig:** Los tests de `visual_states.test.ts` usaron el flag `s` para hacer que `.` en regex coincida con saltos de línea (necesario para validar bloques CSS multi-línea). Con `target: "ES2017"`, `tsc --noEmit` reportó TS1501. **Solución:** Actualizar `target` a `"ES2018"` — correcto para Next.js 15 que transpila para navegadores modernos. Sin efectos secundarios detectados.
+
+3. **Regex en auditoría de certificación con falso positivo por llaves anidadas CSS:** El check de "keyframes NO anima propiedades de layout" usó el regex `/@keyframes skeleton-pulse[\s\S]*?(width|height|margin|padding)[\s\S]*?\}/m` que no maneja correctamente las llaves anidadas de los keyframe-selectors (`0%, 100% { ... }`). El regex escapó del bloque keyframes y encontró `padding` en `.skeleton-card`. **Resolución:** Escribir un extractor de bloque CSS con conteo de profundidad de llaves para aislar exactamente el contenido del `@keyframes`. El bloque real solo contiene `opacity` — animación válida 60fps.
+
+4. **Inconsistencia de documentación en SkeletonDashboard:** El comentario del archivo decía "Skeleton loaders para los 3 indicadores" (literal del spec), cuando la implementación correcta renderiza 4 servicios. El spec menciona "3 indicadores" probablemente refiriéndose a los servicios críticos visibles en el estado público, pero el dashboard privado muestra los 4. El `frontend-reviewer` lo detectó y corrigió durante TSK-I1-F02-C.
+
+### 💡 Lecciones Clave
+
+> **Lección 1 — Para RED de módulos FE, usa import de valor, no `import type`:**
+> `import type { X } from '@/missing-module'` es eliminado por ts-jest en transpileModule antes de que Node intente resolver el módulo. Solo `import { X } from '@/missing-module'` (import de valor) genera el error "Cannot find module" que fuerza el estado RED. Esta distinción es crítica para el flujo TDD con módulos TypeScript.
+
+> **Lección 2 — Las tablas de mapeo (STATUS_CONFIG, SLA_COLOR) son la "Spec visual hecha código":**
+> Definir los mapeos `estado → apariencia` como constantes exportables (no como ternarios inline en JSX) transforma las decisiones de diseño visual en contratos verificables automáticamente. Los tests pueden leer el código fuente y confirmar que los colores correctos están asignados a cada estado, sin necesitar renderizado. Aplicar este patrón a todos los mapeos de presentación en Iteración 2.
+
+> **Lección 3 — Los audits de certificación deben manejar estructuras anidadas con parsers, no regex planos:**
+> Un regex que busca una propiedad dentro de un bloque CSS puede "escapar" si el bloque tiene llaves anidadas. Para validar contenido dentro de estructuras delimitadas (CSS `@keyframes`, JSON, HTML), usar un parser o un extractor por conteo de profundidad. Los falsos positivos en la auditoría erosionan la confianza en el proceso de certificación.
