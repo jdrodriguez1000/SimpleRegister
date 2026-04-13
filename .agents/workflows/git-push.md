@@ -8,9 +8,9 @@ Este flujo garantiza que cada cambio llegue a GitHub de forma ordenada, trazable
 
 ## Paso 0 — Verificación del Contexto del Plan
 Antes de cualquier comando de Git, el agente debe:
-1. **Identificar Fase y Etapa**: Consultar `docs/governance/PROJECT_plan.md` para determinar la etapa activa (ej. Fase 1, Etapa 1.1).
-2. **Validar Rama SMM**: La rama debe seguir el formato de la regla `git-hygiene`: `feat/f[F]_[E]_[nombre_corto]`.
-   - Ejemplo: `feat/f1_1.1_supabase_setup`
+1. **Identificar Iteración y Bloque**: Consultar `docs/governance/PROJECT_plan.md` para determinar el bloque activo (ej. Iteración 1, Bloque 1).
+2. **Validar Rama SMM**: La rama debe seguir el formato de la regla `git-hygiene`: `feat/i[I]_b[B]_[nombre_corto]`.
+   - Ejemplo: `feat/i1_b1_infra_setup`
 
 ## Paso 1 — Diagnóstico de Higiene (Ley de Higiene)
 Ejecuta el diagnóstico exhaustivo según la regla `git-pusher`:
@@ -47,7 +47,7 @@ Si se subió una rama `feat/` de una etapa que se considera completada según el
 1. **Target**: Proponer PR hacia `dev` (si existe) o `main`.
 2. **Creación**: Usar GitHub CLI (`gh pr create`) con el siguiente formato:
 ```markdown
-## 🚀 Fase [F] - Etapa [E]: [Nombre de la Etapa]
+## 🚀 Iteración [I] - Bloque [B]: [Nombre del Bloque]
 
 ### Qué hace este cambio
 [Descripción detallada en español de la funcionalidad]
@@ -66,7 +66,7 @@ Verifica que el remoto refleje el estado local: `git log --oneline origin/[rama]
 Informa el éxito del ciclo:
 ```
 ✅ Ciclo de Push completado.
-   Fase/Etapa:      [F].[E]
+   Iteración/Bloque: [I].[B]
    Rama:            [nombre]
    PR Creada:       [URL si aplica]
 ```
