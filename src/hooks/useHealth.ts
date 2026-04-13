@@ -1,6 +1,6 @@
 /**
  * useHealth.ts — Hook y Lógica Pura de Estado: Health Dashboard
- * Trazabilidad: TSK-I1-F02-G / TSK-I1-F02-RF | Iteración 1 — Bloque 5
+ * Trazabilidad: TSK-I1-F02-G / TSK-I1-F02-RF / TSK-I1-F03-RF | Iteración 1 — Bloques 5–6
  * Agente: frontend-coder
  *
  * Estructura de exports:
@@ -9,11 +9,16 @@
  *       computeSLALevel · getInitialState · applyHealthResponse
  *   - Hook React:     useHealth (requiere contexto de Client Component)
  *
- * Datos: vinculado a Mocks del spec §Contrato de Mocks.
- * Conexión real a la API: TSK-I1-F03-G.
+ * Datos: consume /api/v1/health real vía health_api_client (TSK-I1-F03-G/RF).
+ * Resiliencia: reintento exponencial automático ante 503/429 (centralizado en service layer).
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import {
+  fetchHealthWithRetry,
+  FetchHealthError,
+} from '@/src/lib/services/health_api_client';
+import type { RetryConfig } from '@/src/lib/services/health_api_client';
 import type { HealthCheckResponse, SLALevel, HealthUIState } from '@/types/health';
 
 // =============================================================================
@@ -110,51 +115,58 @@ export function applyHealthResponse(
 }
 
 // =============================================================================
-// Mock de la API — Spec §Contrato de Mocks (Respuesta Privada — Success Full)
-// Será reemplazado por la capa de servicio real en TSK-I1-F03-G
+// Configuración de Resiliencia — política de reintento del hook
+// spec §Manejo de Estados UI — Error: reintento con backoff exponencial
 // =============================================================================
 
-function buildMockResponse(): HealthCheckResponse {
-  return {
-    status: 'healthy',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-    performance: {
-      api_latency_ms: 45.00,
-      latency_type: 'Server-side processing (including DB/Redis check)',
-    },
-    dependencies: {
-      database: 'connected',
-      redis: 'connected',
-      email_service: 'config_valid',
-      captcha_service: 'config_valid',
-    },
-  };
-}
+const HEALTH_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 3,
+  baseDelayMs: 1_000,
+};
 
 // =============================================================================
 // React Hook — useHealth
 // Requiere 'use client' en el componente que lo consuma.
+// Consume /api/v1/health real vía fetchHealthWithRetry (TSK-I1-F03-G).
 // =============================================================================
 
 export function useHealth(): UseHealthReturn {
   const [state, setState] = useState<HealthState>(getInitialState);
 
-  const fetchHealth = useCallback(() => {
+  const executeFetch = useCallback(() => {
     setState(prev => ({ ...prev, uiState: 'loading' }));
 
-    // Simula latencia de red con mock — reemplazar en TSK-I1-F03-G
-    const timer = setTimeout(() => {
-      const response = buildMockResponse();
-      setState(prev => applyHealthResponse(prev, response));
-    }, 800);
+    const controller = new AbortController();
 
-    return () => clearTimeout(timer);
+    fetchHealthWithRetry({ signal: controller.signal }, HEALTH_RETRY_CONFIG)
+      .then(({ data }) => {
+        setState(prev => applyHealthResponse(prev, data));
+      })
+      .catch((err: unknown) => {
+        // Cancelación intencional (cleanup de useEffect) — no actualizar estado
+        if (err instanceof Error && err.name === 'AbortError') return;
+
+        if (err instanceof FetchHealthError && err.response != null) {
+          // Error HTTP con body SOP — mapear directamente a estado de error
+          setState(prev => applyHealthResponse(prev, err.response!));
+        } else {
+          // Fallo de red puro (statusCode 0) o error inesperado — degradar a error
+          setState(prev => ({
+            ...prev,
+            uiState: 'error',
+            slaLevel: 'critical',
+            error: 'SYSTEM_DEGRADED',
+            lastFetchedAt: new Date(),
+          }));
+        }
+      });
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
-    return fetchHealth();
-  }, [fetchHealth]);
+    return executeFetch();
+  }, [executeFetch]);
 
-  return { state, refetch: fetchHealth };
+  return { state, refetch: executeFetch };
 }
