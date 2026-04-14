@@ -279,25 +279,25 @@ graph TD
     - **DoD**: Firma de cumplimiento con RNF1; validación de que los tokens son UUIDv4, están normalizados y hasheados en DB s/ PROJECT_spec.md; **certificación de que todas las respuestas de error de persistencia incluyen `version` y `timestamp` (SOP Compliance)**.
 
 ### ## Bloque 9 — Registro de Usuario & Safe Registry (Backend) [Etapa 2.2.0]
-- [ ] `[TSK-I2-B02-R]` **Register Contract Red**: Crear suite de tests de contrato para `POST /register` incluyendo Rate Limit (Fixed Window).
+- [x] `[TSK-I2-B02-R]` **Register Contract Red**: Crear suite de tests de contrato para `POST /register` incluyendo Rate Limit (Fixed Window).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests de contrato fallan (RED); **assertion mandatoria de campos SOP (version, timestamp) en toda respuesta**; validación de 429 tras 5 intentos IP/día; **verificación de que el límite se reinicia exactamente a las 00:00 UTC (Fixed Window)**; inclusión obligatoria de test case para **503 SYSTEM_DEGRADED** ante caída de servicios críticos.
-- [ ] `[TSK-I2-B02-G1]` **Register DTO & Validations**: Implementar esquema de entrada y validaciones de negocio.
+- [x] `[TSK-I2-B02-G1]` **Register DTO & Validations**: Implementar esquema de entrada y validaciones de negocio.
     - **Agente responsable**: `backend-coder`
     - **DoD**: RegisterDTO creado; validación de `Accepted-Language: es`; reglas de validación para `birthdate` y `password` integradas.
-- [ ] `[TSK-I2-B02-G2]` **Register Safe Logic**: Implementar caso de uso con Safe Registry policy y dispatch de evento.
+- [x] `[TSK-I2-B02-G2]` **Register Safe Logic**: Implementar caso de uso con Safe Registry policy y dispatch de evento.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Endpoint responde 201 Created s/ Spec; generación de **UUID v4 aleatorio y único por petición** para `user_id` (dummy) en colisiones s/ Spec (L303); inclusión de `token_expires_at` y manejo de `warning_code: EMAIL_DISPATCH_FAILED`.
-- [ ] `[TSK-I2-B02-G3]` **Auth Rate Limit (Redis)**: Implementar algoritmo Fixed Window para límites de registro.
+- [x] `[TSK-I2-B02-G3]` **Auth Rate Limit (Redis)**: Implementar algoritmo Fixed Window para límites de registro.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Algoritmo Fixed Window de 24h con reinicio a las 00:00 UTC (TTL calculado dinámicamente) en Redis para límite de 5 req/día; **lógica de cabeceras X-RateLimit-* reportando el par (Remaining, Reset) s/ L16**.
-- [ ] `[TSK-I2-B02-RF]` **Rate Limit Refactor**: Inyectar middleware de Rate Limit específico (5/día) y cálculo de cabeceras restrictivas.
+- [x] `[TSK-I2-B02-RF]` **Rate Limit Refactor**: Inyectar middleware de Rate Limit específico (5/día) y cálculo de cabeceras restrictivas.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Lógica de "Límite más restrictivo" aplicada s/ Spec (L16) comparando el límite global (10/min) vs el específico (5/day); middleware desacoplado de la lógica de negocio.
-- [ ] `[TSK-I2-B02-V]` **Register Privacy Val**: Ejecución de tests de penetración para enumeración de usuarios.
+- [x] `[TSK-I2-B02-V]` **Register Privacy Val**: Ejecución de tests de penetración para enumeración de usuarios.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Se confirma que un atacante no puede distinguir entre un correo nuevo y uno existente; **validación de que el ID devuelto en colisiones sucesivas para el mismo email es distinto/aleatorio**; validación de `X-RateLimit-Reset` en segundos (Unix Epoch); inmutabilidad de `error_code` (Inglés) vs `message` (Español); validación de respuesta 201 con `warning_code` en fallos de mock de email; **validación de que el ID devuelto es un UUID v4 válido**.
-- [ ] `[TSK-I2-B02-C]` **Safe Registry Cert**: Auditoría de privacidad y cumplimiento de contrato.
+- [x] `[TSK-I2-B02-C]` **Safe Registry Cert**: Auditoría de privacidad y cumplimiento de contrato.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Certificación de cumplimiento 100% con la política de privacidad y esquema de respuesta 201/429 s/ PROJECT_spec.md; **validación de que los errores de registro (Under 18, Weak Password) cumplen con el SOP (Headers, Version, Timestamp)**.
 

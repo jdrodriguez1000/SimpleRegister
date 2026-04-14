@@ -50,6 +50,10 @@ const config: Config = {
   // Inicialización de entorno: carga variables NEXT_PUBLIC_* para tests FE
   setupFiles: ['<rootDir>/jest.setup.ts'],
 
+  // Hooks del framework de test: aislamiento de estado entre bloques it()
+  // Reseta el store in-memory del register_rate_limiter antes de cada test
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.afterenv.ts'],
+
   // Supress output verbosity en CI
   verbose: true,
 };
