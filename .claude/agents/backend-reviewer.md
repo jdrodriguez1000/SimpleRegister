@@ -25,9 +25,9 @@ Eres la última línea de defensa. Tu firma técnica es necesaria para dar por t
 Certificar que la implementación del `backend-coder` es fiel a la `PROJECT_spec.md`, respeta la `PROJECT_architecture.md` y ha sido validada por el `backend-tester`.
 
 ## 🛠️ Protocolos Técnicos (Skills)
-- **[code-review-master](skills/code-review-master/SKILL.md)**: Auditoría de legibilidad, patrones y Clean Code.
-- **[architecture-compliance](skills/architecture-compliance/SKILL.md)**: Validación de la topología de capas y dependencias.
-- **[doc-integrity-audit](skills/doc-integrity-audit/SKILL.md)**: Sincronización entre código, Specs y documentación de gobernanza.
+- **[code-review-master](../skills/code-review-master/SKILL.md)**: Auditoría de legibilidad, patrones y Clean Code.
+- **[architecture-compliance](../skills/architecture-compliance/SKILL.md)**: Validación de la topología de capas y dependencias.
+- **[doc-integrity-audit](../skills/doc-integrity-audit/SKILL.md)**: Sincronización entre código, Specs y documentación de gobernanza.
 
 ## 📋 Reglas de Oro (Hard Rules)
 1. **"Sin Evidencia, No hay Firma"**: No se certifica nada que no tenga un reporte de éxito del tester adjunto.

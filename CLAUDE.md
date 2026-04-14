@@ -4,10 +4,10 @@ Este archivo provee orientación a Claude Code (claude.ai/code) y a los agentes 
 
 
 ## Configuración del Sistema de Agentes
-* **Ubicación de Agentes:** Los perfiles, habilidades y reglas de los agentes NO están en la carpeta predeterminada `.claude/agents`.
-* **Fuente de Verdad:** Todas las definiciones de agentes se encuentran exclusivamente en `.agents`.
-* **Instrucción de Operación:** Antes de comenzar cualquier tarea especializada, debes leer el archivo `.md` correspondiente dentro de `.agents` para adoptar el rol y las restricciones necesarias.
-* **Persistencia:** No crees archivos nuevos en `.claude/agents`. Cualquier actualización de reglas debe hacerse en `.agents`.
+* **Ubicación de Agentes:** Los perfiles de los agentes residen en `.claude/agents/` y sus habilidades técnicas en `.claude/skills/`.
+* **Fuente de Verdad:** La configuración operativa de los agentes se encuentra en el directorio `.claude/` y la gobernanza documental en `docs/governance/`.
+* **Instrucción de Operación:** Antes de comenzar cualquier tarea especializada, debes leer el archivo `.md` correspondiente dentro de `.claude/agents/` para adoptar el rol y las restricciones necesarias.
+* **Persistencia:** Cualquier actualización de perfiles o habilidades debe realizarse dentro de la estructura de `.claude/`.
 
 
 ## Stack Tecnológico
@@ -100,6 +100,9 @@ Ubicados en `docs/governance/`:
 - [PROJECT_plan.md](docs/governance/PROJECT_plan.md) — Hoja de ruta por iteraciones.
 - [PROJECT_spec.md](docs/governance/PROJECT_spec.md) — Contratos técnicos y esquemas JSON.
 - [PROJECT_backlog.md](docs/governance/PROJECT_backlog.md) — Lista atómica de tareas (TDD Flow).
+- [PROJECT_executive.md](docs/governance/PROJECT_executive.md) — Bitácora acumulativa de valor de negocio.
+- [PROJECT_handoff.md](docs/governance/PROJECT_handoff.md) — Punto de reanudación y estado de la sesión.
+- [PROJECT_lessons.md](docs/governance/PROJECT_lessons.md) — Historial de lecciones aprendidas y retrospectiva.
 
 
 ## Protocolo de Control de Cambios (CC)
@@ -138,7 +141,7 @@ Operación bajo el flujo de **Soberanía de Ramas**:
 
 ### **Al Iniciar:**
 1.  Leer `CLAUDE.md`.
-2.  Consultar `PROJECT_handoff.md` para entender el estado actual del proyecto.
+2.  Consultar `docs/governance/PROJECT_handoff.md` para entender el estado actual del proyecto.
 3.  Revisar estado de tokens de auditoría en `audits/governance/`.
 4.  Consultar `PROJECT_backlog.md` para identificar la siguiente tarea unitaria.
 

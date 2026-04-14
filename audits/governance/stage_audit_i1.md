@@ -84,9 +84,9 @@
 | `TSK-I1-F01-G` — App Bootstrap Green | Next.js 15, `types/health.ts` 1:1 con Spec | `types/health.ts` con 6 exports: `HealthCheckResponse`, `ConnectionStatus`, `ConfigStatus`, `ServiceName`, `HealthUIState`, `SLALevel` | ✅ CONFORME |
 | `TSK-I1-F01-RF` — FE Arch Refactor | `app/` organizada, `@/*` verificado, sin boilerplate | Layout limpio en `src/app/`, `tsconfig.json` con paths, `jest.setup.ts` con `NEXT_PUBLIC_APP_URL` | ✅ CONFORME |
 | `TSK-I1-F01-V` — Bootstrap Validation | Build exitoso, env inyectadas, sin `any` | 34/34 tests GREEN, `tsc --noEmit` limpio | ✅ CONFORME |
-| `TSK-I1-F01-C` — FE Arch Certification | Alineación con `PROJECT_architecture.md` y Spec | Evidencia en `PROJECT_handoff.md §B4`: "Certificado con corrección `<p>→<h1 sr-only>` (WCAG)" | ✅ CONFORME¹ |
+| `TSK-I1-F01-C` — FE Arch Certification | Alineación con `PROJECT_architecture.md` y Spec | Evidencia en `docs/governance/PROJECT_handoff.md §B4`: "Certificado con corrección `<p>→<h1 sr-only>` (WCAG)" | ✅ CONFORME¹ |
 
-> ¹ Certificación documentada en `PROJECT_handoff.md`. Documento `cert_fe_arch_B04.md` no generado como artefacto independiente — deuda de documentación (no bloqueante, ver §10).
+> ¹ Certificación documentada en `docs/governance/PROJECT_handoff.md`. Documento `cert_fe_arch_B04.md` no generado como artefacto independiente — deuda de documentación (no bloqueante, ver §10).
 
 ---
 
@@ -98,9 +98,9 @@
 | `TSK-I1-F02-G` — Indicators & Dashboard Green | UI 4 servicios, estados dinámicos, Hook | `ServiceCard.tsx`, `PerformanceMetrics.tsx`, `ErrorBanner.tsx`, `SkeletonDashboard.tsx`, `HealthDashboard.tsx`, `useHealth.ts` — todos presentes | ✅ CONFORME |
 | `TSK-I1-F02-RF` — UI Logic Refactor | Componentes atómicos, presentación ≠ datos | `SkeletonDashboard` extraído, `useHealth.ts` con funciones puras separadas del hook | ✅ CONFORME |
 | `TSK-I1-F02-V` — Visual States Validation | Colores Green/Warning/Critical validados | `src/__tests__/frontend/visual_states.test.ts` (64 tests GREEN, pipeline latencia→SLA→CSS) | ✅ CONFORME |
-| `TSK-I1-F02-C` — Visual Certification | 100% vs Spec, accesibilidad WCAG | Evidencia en `PROJECT_handoff.md §B5`: "Certificado 38/38 controles" | ✅ CONFORME¹ |
+| `TSK-I1-F02-C` — Visual Certification | 100% vs Spec, accesibilidad WCAG | Evidencia en `docs/governance/PROJECT_handoff.md §B5`: "Certificado 38/38 controles" | ✅ CONFORME¹ |
 
-> ¹ Certificación documentada en `PROJECT_handoff.md`. Documento `cert_fe_visual_B05.md` no generado como artefacto independiente — deuda de documentación (no bloqueante, ver §10).
+> ¹ Certificación documentada en `docs/governance/PROJECT_handoff.md`. Documento `cert_fe_visual_B05.md` no generado como artefacto independiente — deuda de documentación (no bloqueante, ver §10).
 
 ---
 
@@ -161,8 +161,8 @@
 | `cert_infra_B01.md` | B01 | `audits/governance/` | ✅ Formal |
 | `cert_b02_sop.md` | B02 | `audits/iterations/i1/` | ✅ Formal |
 | `cert_resilience_B03.md` | B03 | `audits/governance/` | ✅ Formal |
-| B04 cert | B04 | `PROJECT_handoff.md §B4` | ✅ En handoff |
-| B05 cert | B05 | `PROJECT_handoff.md §B5` | ✅ En handoff |
+| B04 cert | B04 | `docs/governance/PROJECT_handoff.md §B4` | ✅ En handoff |
+| B05 cert | B05 | `docs/governance/PROJECT_handoff.md §B5` | ✅ En handoff |
 | `cert_fe_resilience_B06.md` | B06 | `audits/governance/` | ✅ Formal |
 
 ---
@@ -187,7 +187,7 @@
 ### HALLAZGO-Z01-01 — Cert Docs Formales Ausentes para B04 y B05
 **Clasificación:** ⚠️ DOCUMENTACIÓN — NO BLOQUEANTE
 **Descripción:** Las tareas `TSK-I1-F01-C` (FE Arch Cert) y `TSK-I1-F02-C` (Visual Cert) no generaron archivos `cert_*.md` independientes en `audits/`.
-**Evidencia compensatoria:** `PROJECT_handoff.md` documenta los veredictos completos ("Certificado con corrección" / "Certificado 38/38 controles") con detalle técnico suficiente. Tests `arch_config.test.ts` y `visual_states.test.ts` validan físicamente los DoD.
+**Evidencia compensatoria:** `docs/governance/PROJECT_handoff.md` documenta los veredictos completos ("Certificado con corrección" / "Certificado 38/38 controles") con detalle técnico suficiente. Tests `arch_config.test.ts` y `visual_states.test.ts` validan físicamente los DoD.
 **Acción requerida:** Generar `cert_fe_arch_B04.md` y `cert_fe_visual_B05.md` como deuda de documentación en la Iteración 2 (no bloquea el cierre de la Iteración 1).
 
 ### HALLAZGO-Z01-02 — Test RED Persistente: `redis_resilience.test.ts`
@@ -222,8 +222,8 @@
 | Infra B01 | `audits/governance/cert_infra_B01.md` | ✅ CERTIFICADO |
 | Health API B02 | `audits/iterations/i1/cert_b02_sop.md` | ✅ CERTIFICADO |
 | Resiliencia B03 | `audits/governance/cert_resilience_B03.md` | ✅ CERTIFICADO |
-| FE Arch B04 | `PROJECT_handoff.md §B4` | ✅ CERTIFICADO (handoff) |
-| FE UI B05 | `PROJECT_handoff.md §B5` | ✅ CERTIFICADO (handoff) |
+| FE Arch B04 | `docs/governance/PROJECT_handoff.md §B4` | ✅ CERTIFICADO (handoff) |
+| FE UI B05 | `docs/governance/PROJECT_handoff.md §B5` | ✅ CERTIFICADO (handoff) |
 | FE Integration B06 | `audits/governance/cert_fe_resilience_B06.md` | ✅ CERTIFICADO |
 
 **Cadena de Confianza: COMPLETA** — 11/11 dominios con evidencia de revisión técnica.

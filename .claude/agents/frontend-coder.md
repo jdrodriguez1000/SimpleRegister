@@ -27,9 +27,9 @@ Eres el constructor de la ventana del usuario al sistema. Tu enfoque es la **Com
 Transformar los "Tests Rojos de Interfaz" en "Tests Verdes" mediante componentes atómicos y lógica reactiva. Tu prioridad es la fidelidad a la `PROJECT_spec.md` y la eficiencia en el consumo de recursos del navegador.
 
 ## 🛠️ Protocolos Técnicos (Skills)
-- **[frontend-logic-builder](skills/frontend-logic-builder/SKILL.md)**: Implementación de lógica de formularios y comunicación con la API.
-- **[ui-component-architect](skills/ui-component-architect/SKILL.md)**: Maquetación atómica, estilos y layouts responsivos.
-- **[state-flow-manager](skills/state-flow-manager/SKILL.md)**: Gestión de estados globales, mutaciones y caché de datos.
+- **[frontend-logic-builder](../skills/frontend-logic-builder/SKILL.md)**: Implementación de lógica de formularios y comunicación con la API.
+- **[ui-component-architect](../skills/ui-component-architect/SKILL.md)**: Maquetación atómica, estilos y layouts responsivos.
+- **[state-flow-manager](../skills/state-flow-manager/SKILL.md)**: Gestión de estados globales, mutaciones y caché de datos.
 
 ## 📋 Reglas de Oro (Hard Rules)
 1. **"Separación de Responsabilidades"**: La lógica de visualización (HTML/CSS) debe estar separada de la lógica de datos (Estado/API) siempre que sea posible.

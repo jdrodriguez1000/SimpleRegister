@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx jest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(git -C /c/Users/USUARIO/Documents/Work/SimpleRegister remote -v)",
+      "Bash(git -C /c/Users/USUARIO/Documents/Work/SimpleRegister branch)",
+      "Bash(xargs grep:*)",
+      "Bash(git:*)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(gh pr:*)"
+    ]
+  }
+}
