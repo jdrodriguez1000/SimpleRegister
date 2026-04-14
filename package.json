@@ -9,7 +9,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "worker": "ts-node -P tsconfig.json src/lib/workers/run_worker.ts"
   },
   "dependencies": {
     "ioredis": "^5.10.1",

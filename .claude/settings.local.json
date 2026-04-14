@@ -11,7 +11,20 @@
       "Bash(xargs grep:*)",
       "Bash(git:*)",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(gh pr:*)"
+      "Bash(gh pr:*)",
+      "Bash(findstr /V \"Warning localstorage\")",
+      "Bash(node -e \"const jest30 = require\\('jest'\\); console.log\\(jest30.version ?? 'unknown'\\)\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/jest/package.json'\\); console.log\\(pkg.version\\)\")",
+      "Bash(npm test:*)",
+      "Bash(node -e ':*)",
+      "Bash(tee /tmp/val_output.txt)",
+      "Read(//tmp/**)",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const r=JSON.parse\\(d\\); r.testResults[0].testResults.forEach\\(t=>console.log\\(t.status.padEnd\\(8\\), t.fullName\\)\\)\")",
+      "Bash(node -e \"const r=require\\('/tmp/jest_val_results.json'\\); r.testResults[0].testResults.forEach\\(t=>console.log\\(t.status.padEnd\\(8\\), t.fullName\\)\\)\")",
+      "Bash(node -e \"const r=require\\('C:/Users/USUARIO/AppData/Local/Temp/jest_val.json'\\); r.testResults[0].testResults.forEach\\(t=>console.log\\(t.status.padEnd\\(8\\), t.fullName\\)\\)\")",
+      "Bash(node:*)",
+      "Skill(session-close-handoff)",
+      "Skill(session-close-lessons)"
     ]
   }
 }
