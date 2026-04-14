@@ -44,7 +44,10 @@ Thumbs.db
 # 🤖 IA y Agentes (Logs Locales y Temporales)
 .gemini/
 .claudecode/
-.claude/
+.claude/*
+!.claude/agents/
+!.claude/skills/
+!.claude/settings.local.json
 .history/
 tmp.md
 *.tmp

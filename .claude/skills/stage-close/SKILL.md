@@ -20,12 +20,18 @@ El cierre formal de etapa exige la transformación de métricas de ingeniería e
     -   **Avance Porcentual**: Determinar con precisión el porcentaje de avance global del proyecto tras la finalización certificada de la etapa actual.
 
 ## 📝 Elaboración del Resumen Ejecutivo (Executive Summary)
-Como resultado del cierre, se debe generar un documento oficial en el registro de ejecutivos (`docs/executives/f[F]_[E]_executive.md`) con la siguiente estructura:
+Como resultado del cierre, se debe actualizar el documento maestro de cierre ejecutivo en `docs/governance/PROJECT_executive.md`. Este documento actúa como una bitácora acumulativa que preserva la historia de todas las iteraciones.
 
--   **§1 Resumen de Logros Estratégicos**: Lista de los hitos de mayor impacto para el negocio alcanzados durante la etapa.
--   **§2 Estado de Cumplimiento de Requerimientos**: Análisis del porcentaje de éxito sobre los requerimientos funcionales y técnicos definidos originalmente en el PRD.
--   **§3 Gestión de Riesgos y Desafíos Residuales**: Resumen de los bloqueadores encontrados, soluciones técnicas aplicadas y riesgos que el negocio debe considerar para el futuro.
+La estructura para cada nueva iteración añadida debe ser:
+
+### 🏁 Iteración [X]: [Nombre de la Iteración]
+-   **§1 Resumen de Logros Estratégicos**: Lista de los hitos de mayor impacto para el negocio alcanzados.
+-   **§2 Estado de Cumplimiento de Requerimientos**: Análisis del porcentaje de éxito sobre los requerimientos funcionales y técnicos definidos.
+-   **§3 Gestión de Riesgos y Desafíos Residuales**: Resumen de bloqueadores, soluciones aplicadas y riesgos futuros.
 -   **§4 Indicadores de Progreso Relativo**: Porcentaje de avance de la Fase activa y del Proyecto Total.
+
+> [!IMPORTANT]
+> Si el archivo `PROJECT_executive.md` no existe, debe crearse con un encabezado principal antes de añadir la primera iteración. Si existe, la nueva iteración debe añadirse al final preservando las anteriores.
 
 ## ⛓️ Validación de Precedencia (Gate de Auditoría)
 El protocolo de cierre ejecutivo solo puede activarse si se cumple la condición de integridad técnica previa:

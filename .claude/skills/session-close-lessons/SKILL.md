@@ -11,7 +11,7 @@ allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 Este protocolo define el procedimiento sistemático para transformar la experiencia operativa de cada sesión en activos de conocimiento técnico. Su objetivo es identificar patrones de éxito y fallas críticas para optimizar la evolución del sistema y evitar la reincidencia de errores arquitectónicos u operativos.
 
 ## 🧠 Destilación de Conocimiento (Retrospectiva Técnica)
-Al finalizar cada sesión de trabajo, hito o etapa, se debe realizar una destilación de conocimiento en el registro oficial `docs/lessons/lessons-learned.md`:
+Al finalizar cada sesión de trabajo, hito o etapa, se debe realizar una destilación de conocimiento en el registro oficial `docs/governance/PROJECT_lessons.md`:
 
 1.  **Identificación de Éxitos Repetibles**:
     -   Documentar decisiones técnicas, patrones de diseño o flujos de trabajo que resultaron altamente eficientes y que deberían ser estandarizados en el futuro.
@@ -23,7 +23,7 @@ Al finalizar cada sesión de trabajo, hito o etapa, se debe realizar una destila
     -   Registrar cambios significativos en el diseño original (PRD/SPEC) y la justificación técnica detrás de cada adaptación, manteniendo la trazabilidad de la evolución del producto.
 
 ## 📝 Estructura del Registro de Lecciones Aprendidas
-El archivo `docs/lessons/lessons-learned.md` actúa como el diario histórico de ingeniería del proyecto y debe actualizarse con el siguiente formato estructurado:
+El archivo `docs/governance/PROJECT_lessons.md` actúa como el diario histórico de ingeniería del proyecto y debe actualizarse con el siguiente formato estructurado:
 
 ### Sesión: [YYYY-MM-DD] (Fase [F]. Etapa [E])
 -   ✅ **Éxitos y Aciertos Técnicos**: [Descripción concisa del hito alcanzado o patrón exitoso].

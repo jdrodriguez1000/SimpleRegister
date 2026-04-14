@@ -1,40 +1,42 @@
-# Audit Report: PROJECT_backlog.md (Iteración 1)
-> **Estado:** `PENDIENTE DE AJUSTES MENORES (🟡)`
-> **Fecha:** 2026-04-12
-> **Protocolo:** task-document (SKILL.md)
+# Audit: Project Backlog - Iteration 2 (I2-AUTH)
+> **Protocolo:** Devil's Advocate / @task-document
+> **Fecha:** 2026-04-14
+> **Estado:** ✅ APROBADO / CERTIFICADO
 
-## 👹 Devil's Advocate Analysis
-
-Se ha realizado una revisión exhaustiva del backlog bajo la mentalidad de "abogado del diablo", buscando vacíos legales, ambigüedades técnicas y puntos de fuga en la cadena de confianza TDD.
-
-### 1. Fortalezas (Cadena de Confianza)
-- **Trazabilidad Total:** El backlog hereda correctamente los objetivos de la `PROJECT_plan.md` [v1.0] y los contratos de la `PROJECT_spec.md`.
-- **Estructura R-G-RF-V-C:** Se respeta estrictamente el ciclo de vida de 5 etapas para cada bloque lógico.
-- **Asignación de Agentes:** Existe una clara separación de responsabilidades (Coder vs Tester vs Reviewer).
-
-### 2. Hallazgos y Ambigüedades (Gaps)
-
-| ID | Nivel | Descripción del Hallazgo | Recomendación |
-| :--- | :--- | :--- | :--- |
-| **G-01** | `CRÍTICO` | **Ambigüedad en B01-R (Infra Check):** El DoD pide "confirmar ausencia de servicios públicos" pero no especifica la herramienta ni el alcance (¿nmap?, ¿netcat?, ¿Docker Inspect?). | Definir herramienta específica (ej: script `nc` en el host) para validar que puertos DB/Redis no son accesibles fuera de la red Docker. |
-| **G-02** | `MENOR` | **Validación de Regex UUID en B02-R:** La Spec dicta un Regex estricto (línea 130). El TDD de RED debe incluir este Regex explícitamente en su DoD para evitar "falsos positivos". | Actualizar DoD de `TSK-I1-B02-R` para incluir validación unitaria del Regex UUID v4 dictado en la Spec. |
-| **G-03** | `MEDIO` | **Vigencia de Secretos:** El Bloque 1 genera la infraestructura, pero no hay una tarea atómica para la *generación controlada* de la `X-Health-Key` inicial. | Incluir en `TSK-I1-B01-G` la generación automatizada de claves de desarrollo mediante script de inicialización. |
-| **G-04** | `CRÍTICO` | **Inconsistencia en Chaos Engineering (B03-V):** El DoD es vago ("Chaos light"). No se especifica qué servicio se debe "matar" ni el comportamiento esperado del fallback en el reporte. | Especificar en DoD: "Prueba de desconexión manual de contenedor Redis/DB genera 503 con payload SYSTEM_DEGRADED verificado por tester". |
-| **G-05** | `MENOR` | **Métrica de Cobertura:** TSK-V de varios bloques menciona "cobertura", pero no define el umbral mínimo de éxito (¿80%?, ¿100% de paths críticos?). | Definir umbral de cobertura (ej: >90% en lógica de salud) en el DoD de las tareas de validación. |
-
-### 3. Checklist de Calidad (SKILL.md)
-
-- [x] **Flujo RED-GREEN-RF-VAL-CERT explícito?** Sí.
-- [x] **Diagrama Mermaid refleja ruta crítica?** Sí.
-- [x] **Paso REFACTOR tiene DoD arquitectónico?** Sí (Muy bueno en B01 y B04).
-- [x] **Responsables asignados por perfil?** Sí.
-- [x] **DoD CERT valida la PROJECT_spec?** Sí.
-
-## 🏁 Veredicto Administrativo
-
-El documento `PROJECT_backlog.md` es **ROBUSTO** pero requiere **ESPECIFICIDAD OPERATIVA** en los DoD de infraestructura y caos. 
-
-**Acción Requerida:** Corregir los hallazgos `CRÍTICO` (**G-01** y **G-04**) antes de proceder a la ejecución de la Iteración 1. El hallazgo **G-03** es recomendado para suavizar el Onboarding de agentes.
+## 🚨 Resumen Ejecutivo
+La Iteración 2 ha sido remediada exitosamente. Se han integrado todos los hallazgos críticos de la auditoría "Devil's Advocate", garantizando que el **Bloque 10.1 (Worker Process)** cumpla con el estándar de calidad TDD (RED-GREEN-RF-VAL-CERT) y que la lógica del Frontend sea resiliente ante interrupciones de red (Anti-F5 via `sessionStorage`). La transaccionalidad de tokens ha sido clarificada hacia un modelo `soft-delete` para auditoría, blindando la etapa para su ejecución inmediata.
 
 ---
-*Auditado por Antigravity — System Agent.*
+
+## 🔍 Hallazgos Remediados
+
+### 1. Protocolo de Workers (Restaurado)
+*   **Estado:** Resuelto en **Bloque 10.1**.
+*   **Acción:** Se han añadido las tareas `[TSK-I2-B04-RF]` y `[TSK-I2-B04-C]`. La orquestación Docker ahora incluye desacoplamiento de transporte SMTP y auditoría de límites de recursos.
+
+### 2. Resiliencia Anti-F5 (Blindada)
+*   **Estado:** Resuelto en **TSK-I2-F02-G**.
+*   **Acción:** Se ha sustituido el "estado local" por `sessionStorage` para la persistencia del token de verificación durante el vuelo de la petición. El usuario ya no pierde el acceso al refrescar (F5) antes de la respuesta del servidor.
+
+### 3. Trazabilidad en Mapa de Dependencias
+*   **Estado:** Resuelto en el **Diagrama Mermaid**.
+*   **Acción:** Se ha integrado el Bloque B04 (Worker) en la ruta crítica, situándolo entre la lógica de Backend (B03) y el inicio de la UI (F01), asegurando que el motor de emails esté orquestado antes de las pruebas de integración.
+
+### 4. Transaccionalidad y Seguridad de Tokens
+*   **Estado:** Resuelto en **TSK-I2-B03-G**.
+*   **Acción:** Se especifica el uso de `soft-delete` (flag `used_at`) en una transacción ACID, permitiendo mantener un historial de uso para auditorías forenses sin comprometer la seguridad.
+
+---
+
+## ✅ Checklist de Certificación Final
+- [x] ¿El Bloque 10.1 cumple con el estándar RED-GREEN-RF-VAL-CERT? (SÍ)
+- [x] ¿El Mermaid incluye al Worker? (SÍ)
+- [x] ¿Se implementó `sessionStorage` para el Token de Verificación? (SÍ)
+- [x] ¿El Worker tiene límites de RAM (128MB) y cierre gracioso (SIGTERM)? (SÍ)
+- [x] ¿Se clarificó la política de invalidación de tokens? (SÍ, soft-delete)
+
+---
+**Auditor:** Google AntiGravity (Devil's Advocate Mode)
+**Certificación:** ✅ **PASSED**
+
+

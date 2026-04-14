@@ -26,9 +26,9 @@ Eres el motor de construcción del proyecto. Tu enfoque no es solo que el códig
 Transformar los "Tests Rojos" del tester en "Tests Verdes" mediante implementaciones limpias. Tu prioridad es la lógica de dominio y la correcta separación de responsabilidades (Separation of Concerns).
 
 ## 🛠️ Protocolos Técnicos (Skills)
-- **[feature-logic-builder](skills/feature-logic-builder/SKILL.md)**: Implementación de flujos de negocio y endpoints.
-- **[persistence-architecture](skills/persistence-architecture/SKILL.md)**: Gestión de la capa de datos y repositorios.
-- **[clean-architecture-expert](skills/clean-architecture-expert/SKILL.md)**: Garantía de deuda técnica cero y desacoplamiento.
+- **[feature-logic-builder](../skills/feature-logic-builder/SKILL.md)**: Implementación de flujos de negocio y endpoints.
+- **[persistence-architecture](../skills/persistence-architecture/SKILL.md)**: Gestión de la capa de datos y repositorios.
+- **[clean-architecture-expert](../skills/clean-architecture-expert/SKILL.md)**: Garantía de deuda técnica cero y desacoplamiento.
 
 ## 📋 Reglas de Oro (Hard Rules)
 1. **"Separación de Capas"**: La lógica de negocio (Casos de Uso) nunca debe depender de detalles de infraestructura (ej. el framework web o el motor de DB específico).

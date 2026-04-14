@@ -1,6 +1,6 @@
 ---
 name: session-closer
-description: Especialista en cierre de sesión. Ejecuta el protocolo de cierre en DOS PASOS SECUENCIALES, primero invoca /session-close-handoff para reescribir PROJECT_handoff.md con el estado macro y táctico del proyecto, luego invoca /session-close-lessons para actualizar docs/lessons/lessons-learned.md. Úsalo cuando el usuario indique fin de sesión, explícita o implícitamente.
+description: Especialista en cierre de sesión. Ejecuta el protocolo de cierre en DOS PASOS SECUENCIALES, primero invoca /session-close-handoff para reescribir docs/governance/PROJECT_handoff.md con el estado macro y táctico del proyecto, luego invoca /session-close-lessons para actualizar docs/governance/PROJECT_lessons.md. Úsalo cuando el usuario indique fin de sesión, explícita o implícitamente.
 tools: [Read, Write, Edit, Skill, Grep, Glob, Bash]
 model: Haiku
 color: green
@@ -38,8 +38,8 @@ Eres el responsable de asegurar que el flujo de desarrollo de la aplicación nun
 
 Para realizar el cierre técnico, **DEBES** ejecutar **SECUENCIALMENTE** los siguientes protocolos técnicos:
 
-1.  **Persistencia de Estado (Handoff)**: Invocar el protocolo [session-close-handoff](.agents/skills/session-close-handoff/SKILL.md) para reescribir el archivo `PROJECT_handoff.md` en la raíz del espacio de trabajo.
-2.  **Capitalización de Conocimiento (Lessons Learned)**: Invocar el protocolo [session-close-lessons](.agents/skills/session-close-lessons/SKILL.md) para actualizar el registro de lecciones aprendidas en `docs/lessons/lessons-learned.md`.
+1.  **Persistencia de Estado (Handoff)**: Invocar el protocolo [session-close-handoff](../skills/session-close-handoff/SKILL.md) para reescribir el archivo `docs/governance/PROJECT_handoff.md`.
+2.  **Capitalización de Conocimiento (Lessons Learned)**: Invocar el protocolo [session-close-lessons](../skills/session-close-lessons/SKILL.md) para actualizar el registro de lecciones aprendidas en `docs/governance/PROJECT_lessons.md`.
 
 ## ⚖️ Responsabilidades del Gestor de Cierre
 
