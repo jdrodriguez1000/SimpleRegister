@@ -57,21 +57,26 @@ graph TD
     subgraph Iteration_2["Iteración 2: Registro y Validación"]
         direction TB
         G201S --> B201R["[TSK-I2-B01-R] Auth Schema Red"]
-        B201R --> B201G["[TSK-I2-B01-G] Auth Impl Green"]
-        B201G --> B201RF["[TSK-I2-B01-RF] Persistence RF"]
+        B201R --> B201G1["[TSK-I2-B01-G1] Persistence Impl"]
+        B201G1 --> B201G2["[TSK-I2-B01-G2] Sec/I18N Utils"]
+        B201G2 --> B201G3["[TSK-I2-B01-G3] Purge Logic"]
+        B201G3 --> B201RF["[TSK-I2-B01-RF] Persistence RF"]
         B201RF --> B201V["[TSK-I2-B01-V] Auth Persistence Val"]
         B201V --> B201C["[TSK-I2-B01-C] Security Cert"]
 
         B201C --> B202R["[TSK-I2-B02-R] Register Contract Red"]
-        B202R --> B202G["[TSK-I2-B02-G] Register Impl Green"]
-        B202G --> B202RF["[TSK-I2-B02-RF] Controller RF"]
+        B202R --> B202G1["[TSK-I2-B02-G1] DTO & Validations"]
+        B202G1 --> B202G2["[TSK-I2-B02-G2] Register Logic"]
+        B202G2 --> B202G3["[TSK-I2-B02-G3] Auth Rate Limit"]
+        B202G3 --> B202RF["[TSK-I2-B02-RF] Controller RF"]
         B202RF --> B202V["[TSK-I2-B02-V] Register Contract Val"]
         B202V --> B202C["[TSK-I2-B02-C] Privacy Cert"]
 
         B202C --> B203R["[TSK-I2-B03-R] Verify Logic Red"]
-        B203R --> B203G["[TSK-I2-B03-G] Verify/Resend Green"]
-        B203G --> B203RF["[TSK-I2-B03-RF] Email & I18N RF"]
-        B203RF --> B203V["[TSK-I2-B03-V] Verify/Resend Val"]
+        B203R --> B203G1["[TSK-I2-B03-G1] Verify Account Impl"]
+        B203G1 --> B203G2["[TSK-I2-B03-G2] Resend & Queue Impl"]
+        B203G2 --> B203RF["[TSK-I2-B03-RF] Email Service RF"]
+        B203RF --> B203V["[TSK-I2-B03-V] Workflow Integrity Val"]
         B203V --> B203C["[TSK-I2-B03-C] Auth Logic Cert"]
 
         B203C --> B204R["[TSK-I2-B04-R] Worker Lifecycle Red"]
@@ -81,16 +86,18 @@ graph TD
         B204V --> B204C["[TSK-I2-B04-C] Cloud Worker Cert"]
 
         B204C --> F201R["[TSK-I2-F01-R] Register/Pending Red"]
-        F201R --> F201G["[TSK-I2-F01-G] Form/Pending Green"]
-        F201G --> F201RF["[TSK-I2-F01-RF] UI Component RF"]
-        F201RF --> F201V["[TSK-I2-F01-V] Form Validation Val"]
-        F201V --> F201C["[TSK-I2-F01-C] Visual/UX Cert"]
+        F201R --> F201G1["[TSK-I2-F01-G1] Register UI Impl"]
+        F201G1 --> F201G2["[TSK-I2-F01-G2] Pending View Impl"]
+        F201G2 --> F201RF["[TSK-I2-F01-RF] UI Logic & I18N RF"]
+        F201RF --> F201V["[TSK-I2-F01-V] UX Consistency Val"]
+        F201V --> F201C["[TSK-I2-F01-C] UX/Visual Cert"]
 
         F201C --> F202R["[TSK-I2-F02-R] Verify/Resend Red"]
-        F202R --> F202G["[TSK-I2-F02-G] Landings Impl Green"]
-        F202G --> F202RF["[TSK-I2-F02-RF] API Integration RF"]
-        F202RF --> F202V["[TSK-I2-F02-V] Full Flow E2E Val"]
-        F202V --> F202C["[TSK-I2-F02-C] Contract Integration Cert"]
+        F202R --> F202G1["[TSK-I2-F02-G1] Verify UI Impl"]
+        F202G1 --> F202G2["[TSK-I2-F02-G2] Resend UI Impl"]
+        F202G2 --> F202RF["[TSK-I2-F02-RF] Full Stack Refactor"]
+        F202RF --> F202V["[TSK-I2-F02-V] Full E2E Validation"]
+        F202V --> F202C["[TSK-I2-F02-C] Contract Cert"]
 
         F202C --> Z201A["[TSK-I2-Z01-A] Stage Audit"]
         Z201A --> Z202S["[TSK-I2-Z02-S] Exec Summary"]
@@ -231,7 +238,7 @@ graph TD
     - **DoD**: Generación del documento de cierre (Executive Summary) con los logros de la Iteración 1 y el estado de la línea de base.
 - [x] `[TSK-I1-Z03-H]` **Handoff & Lecciones Aprendidas**: Consolidación de conocimiento y fricciones técnicas detectadas.
     - **Agente responsable**: `session-closer`
-    - **DoD**: Creación de `PROJECT_handoff.md` y actualización del log de lecciones aprendidas para optimizar la Iteración 2.
+    - **DoD**: Actualización de `docs/governance/PROJECT_handoff.md` y de `docs/governance/PROJECT_lessons.md` para optimizar la Iteración 2.
 - [x] `[TSK-I1-Z04-P]` **Sincronización Final (Git Push)**: Empuje final de la etapa consolidada a GitHub.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: Ejecución exitosa del workflow `/git-push` enviando la etapa completa y certificada al repositorio remoto.
@@ -252,9 +259,15 @@ graph TD
 - [ ] `[TSK-I2-B01-R]` **Auth Schema Red**: Crear tests de persistencia para `User` y `AuthToken` incluyendo validación de normalización (Estado RED).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests fallan por ausencia de modelos; **assertion mandatoria de campos SOP (version, timestamp) en toda respuesta de error**; validación de campos `email` (unique), `password` (hash string), `birthdate` (Date/ISO), `status` (Enum: UNVERIFIED, ACTIVE) y `deleted_at` (Timestamp); **validación de Clock Mocking para límites de 24h y 7d**; **test de "Lock Collision" (race condition) para el Purge Worker simulando dos instancias concurrentes mediante mock de Redis Lock**; inclusión de casos de borde para mayoría de edad (29 de febrero, cambios de siglo); **test unitario confirma rechazo de password UTF-8 que exceda 128 bytes (ej. emojis pesados)**; **test de regresión para I18N confirma fallback mandatorio a 'es' ante cabeceras No Soportadas (ej. 'ja', 'fr')**.
-- [ ] `[TSK-I2-B01-G]` **Auth Implementation Green**: Crear esquemas de DB, migraciones, lógica de hashing (Argon2id para passwords) e infraestructura transversal (I18N).
+- [ ] `[TSK-I2-B01-G1]` **Auth Persistence Impl**: Crear esquemas de DB y migraciones para `users` y `auth_tokens`.
     - **Agente responsable**: `backend-coder`
-    - **DoD**: Modelos creados en DB; registros de prueba hasheados correctamente; campo `status` por defecto `UNVERIFIED`; implementación del **Purge Worker** (proceso de fondo) con política de ejecución única mediante **Redis Distributed Locking (TTL: 10 min)** y estrategia de "Fail-Fast" ante desconexión de Redis; **bloque de liberación de lock en `finally` garantizado**; rechazo explícito de payloads > 128 bytes antes del hashing; **normalización mandatoria a lowercase antes de persistencia de tokens s/ Spec (L425)**; implementación de matching de idioma basado en prefijos (ej. `es-MX` -> `es`) con **fallback automático a 'es'** (RNF5); **lógica de validación de edad robusta y paritaria (Plain-Date logic: tratamiento de `birthdate` como string YYYY-MM-DD para evitar desfases de zona horaria; Leap-year aware) incluyendo límite inferior `minDate: 1900-01-01` s/ Spec L295**; **identidad de respuesta Safe Registry para usuarios con `deleted_at` activo**.
+    - **DoD**: Modelos creados en DB; registros de prueba persistidos; campo `status` por defecto `UNVERIFIED`; **lógica de validación de edad robusta y paritaria (Plain-Date logic: tratamiento de `birthdate` como string YYYY-MM-DD para evitar desfases de zona horaria; Leap-year aware) incluyendo límite inferior `minDate: 1900-01-01` s/ Spec L295**.
+- [ ] `[TSK-I2-B01-G2]` **Security & I18N Utils**: Implementar lógica de hashing (Argon2id) y emparejamiento de idioma (I18N).
+    - **Agente responsable**: `backend-coder`
+    - **DoD**: Argon2id integrado correctamente; rechazo explícito de payloads > 128 bytes antes del hashing; **implementación de matching de idioma basado en prefijos (ej. `es-MX` -> `es`) con fallback automático a 'es' (RNF5)**.
+- [ ] `[TSK-I2-B01-G3]` **Purge Background Logic**: Implementar lógica del Purge Worker con bloqueos distribuidos.
+    - **Agente responsable**: `backend-coder`
+    - **DoD**: Implementación del **Purge Worker** (proceso de fondo) con política de ejecución única mediante **Redis Distributed Locking (TTL: 10 min)** y estrategia de "Fail-Fast" ante desconexión de Redis; **bloque de liberación de lock en `finally` garantizado**.
 - [ ] `[TSK-I2-B01-RF]` **Security Hardening RF**: Implementar hashing de tokens (SHA-256), optimización de índices y **sanitización de logs**.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Los tokens no se guardan en texto plano en la DB; índices creados; **implementación mandatoria de un interceptor de logs que asegure que campos sensibles (`password`, `token`) sean enmascarados (***) en cualquier registro de auditoría o transporte (p.ej. Winston/Bunyan masking)**; **preparación del punto de entrada para el Worker de Purga independiente**.
@@ -269,9 +282,15 @@ graph TD
 - [ ] `[TSK-I2-B02-R]` **Register Contract Red**: Crear suite de tests de contrato para `POST /register` incluyendo Rate Limit (Fixed Window).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests de contrato fallan (RED); **assertion mandatoria de campos SOP (version, timestamp) en toda respuesta**; validación de 429 tras 5 intentos IP/día; **verificación de que el límite se reinicia exactamente a las 00:00 UTC (Fixed Window)**; inclusión obligatoria de test case para **503 SYSTEM_DEGRADED** ante caída de servicios críticos.
-- [ ] `[TSK-I2-B02-G]` **Register Safe Impl Green**: Implementar endpoint de registro con Safe Registry policy y dispatch de evento.
+- [ ] `[TSK-I2-B02-G1]` **Register DTO & Validations**: Implementar esquema de entrada y validaciones de negocio.
     - **Agente responsable**: `backend-coder`
-    - **DoD**: Endpoint responde 201 Created s/ Spec; generación de **UUID v4 aleatorio y único por petición** para `user_id` (dummy) en colisiones s/ Spec (L303); inclusión de `token_expires_at`; manejo de `warning_code: EMAIL_DISPATCH_FAILED`; **algoritmo Fixed Window de 24h con reinicio a las 00:00 UTC (TTL calculado dinámicamente: `86400 - (Now % 86400)`)** en Redis para límite de 5 req/día; **lógica de cabeceras X-RateLimit-* reportando el par (Remaining, Reset) del límite más restrictivo s/ L16**; validación obligatoria de `Accept-Language: es`.
+    - **DoD**: RegisterDTO creado; validación de `Accepted-Language: es`; reglas de validación para `birthdate` y `password` integradas.
+- [ ] `[TSK-I2-B02-G2]` **Register Safe Logic**: Implementar caso de uso con Safe Registry policy y dispatch de evento.
+    - **Agente responsable**: `backend-coder`
+    - **DoD**: Endpoint responde 201 Created s/ Spec; generación de **UUID v4 aleatorio y único por petición** para `user_id` (dummy) en colisiones s/ Spec (L303); inclusión de `token_expires_at` y manejo de `warning_code: EMAIL_DISPATCH_FAILED`.
+- [ ] `[TSK-I2-B02-G3]` **Auth Rate Limit (Redis)**: Implementar algoritmo Fixed Window para límites de registro.
+    - **Agente responsable**: `backend-coder`
+    - **DoD**: Algoritmo Fixed Window de 24h con reinicio a las 00:00 UTC (TTL calculado dinámicamente) en Redis para límite de 5 req/día; **lógica de cabeceras X-RateLimit-* reportando el par (Remaining, Reset) s/ L16**.
 - [ ] `[TSK-I2-B02-RF]` **Rate Limit Refactor**: Inyectar middleware de Rate Limit específico (5/día) y cálculo de cabeceras restrictivas.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Lógica de "Límite más restrictivo" aplicada s/ Spec (L16) comparando el límite global (10/min) vs el específico (5/day); middleware desacoplado de la lógica de negocio.
@@ -286,9 +305,12 @@ graph TD
 - [ ] `[TSK-I2-B03-R]` **Auth Workflows Red**: Crear tests unitarios para `/verify` y `/resend` incluyendo gestión de caos, seguridad de token y colisiones de estado.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests fallan (RED); **assertion mandatoria de campos SOP (version, timestamp) en todas las respuestas de /verify y /resend**; **test case específico para colisión de cuenta ya activa en el flujo de reenvío**; validación de 405 Method Not Allowed en GET; test de **normalización de tokens** (lowercase); inclusión obligatoria de test case para **503 SYSTEM_DEGRADED** en rumbos críticos; **validación de rechazo (400/405) de tokens enviados via Query Param s/ Spec (L385)**; **test de seguridad confirma que los tokens filtrados en Query Param no quedan persistidos en logs de acceso**.
-- [ ] `[TSK-I2-B03-G]` **Auth Workflows Green**: Implementar lógica de activación de cuenta, expiración de tokens (24h) y reenvío limitado (3/hr).
+- [ ] `[TSK-I2-B03-G1]` **Verify Account Impl**: Implementar lógica de activación de cuenta y transaccionalidad.
     - **Agente responsable**: `backend-coder`
-    - **DoD**: El estado del usuario cambia a `ACTIVE` tras éxito; `/resend` emite 200 OK genérico; lógica de colisión activa s/ Spec (L416); inyección de variable `APP_FRONTEND_URL`; **transaccionalidad (ACID) garantizada entre la activación del usuario e invalidación masiva de tokens (soft-delete mediante flag `used_at` para fines de auditoría)**; **implementación de persistencia para la cola de correos (Redis-backed Queue) para asegurar cumplimiento de RNF6 ante reinicios**; normalización mandatoria a lowercase en la entrada de /verify; reenvío limitado (3/hr) **utilizando clave compuesta `IP:Email` en Redis**; validación de `Accept-Language: es`.
+    - **DoD**: El estado del usuario cambia a `ACTIVE` tras éxito; **transaccionalidad (ACID) garantizada entre la activación del usuario e invalidación masiva de tokens (soft-delete mediante flag `used_at`)**; normalización mandatoria a lowercase en la entrada de /verify.
+- [ ] `[TSK-I2-B03-G2]` **Resend & Queue Impl**: Implementar lógica de reenvío limitado y persistencia de cola en Redis.
+    - **Agente responsable**: `backend-coder`
+    - **DoD**: `/resend` emite 200 OK genérico; reenvío limitado (3/hr) **utilizando clave compuesta `IP:Email` en Redis**; **implementación de persistencia para la cola de correos (Redis-backed Queue)** para asegurar cumplimiento de RNF6 ante reinicios.
 - [ ] `[TSK-I2-B03-RF]` **Email Service Refactor**: Refactorizar Service de Email y maquetación de templates premium.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Captura de fallos SMTP con backoff exponencial s/ RNF6; maquetación de templates HTML premium para emails de verificación y reenvío; (Middleware I18N ya integrado en Bloque 8).
@@ -320,9 +342,12 @@ graph TD
 - [ ] `[TSK-I2-F01-R]` **Register/Pending Red**: Crear tests unitarios para campos (RNF1/RNF3) y vista de registro pendiente.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Tests fallan (RED); validación de que el botón de envío está deshabilitado sin `terms_accepted`; definición del test de renderizado para la vista `/auth/verify-pending` s/ Spec L554.
-- [ ] `[TSK-I2-F01-G]` **Form/Pending Green**: Crear componentes de registro y landing de "Check your email" con gestión de estado.
+- [ ] `[TSK-I2-F01-G1]` **Register UI Impl**: Crear componente de formulario de registro premium.
     - **Agente responsable**: `frontend-coder`
-    - **DoD**: Formulario premium con checklist RNF1; **implementación de paridad absoluta en cálculo de edad con el backend (ISO String comparison YYYY-MM-DD para evitar desfases horarias)**; gestión de `/auth/verify-pending`; redirección mandatoria tras registro exitoso s/ Spec; inyección del header `Accept-Language: es`; **manejo de resiliencia ante rechazo 400 del servidor por INVALID_AGE (incluso si la validación local fue exitosa) mediante mensaje de error reactivo**.
+    - **DoD**: Formulario premium con checklist RNF1; **implementación de paridad absoluta en cálculo de edad con el backend (ISO String comparison YYYY-MM-DD)**; inyección del header `Accept-Language: es`.
+- [ ] `[TSK-I2-F01-G2]` **Pending View Impl**: Crear vista de aterrizaje post-registro "Check your email".
+    - **Agente responsable**: `frontend-coder`
+    - **DoD**: Gestión de `/auth/verify-pending`; redirección mandatoria tras registro exitoso s/ Spec.
 - [ ] `[TSK-I2-F01-RF]` **UI Logic & I18N RF**: Refactorizar lógicas de validación a Schemas (Zod) y aplicar internacionalización (es).
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Mensajes de error en español s/ Spec (L651); lógica de validación desacoplada; aplicación de tokens de diseño consistentes; **incorporación estricta del límite de 128 BYTES (medido en UTF-8) en Zod (usando `Blob` o `TextEncoder` para medir peso real)**; **paridad absoluta de cálculo de edad (Leap-year aware) con el backend mediante comparación de años calendario (Plain-Date)**; **centralización de lógica de manejo de errores de API para mapear códigos 400 a estados visuales**.
@@ -337,9 +362,12 @@ graph TD
 - [ ] `[TSK-I2-F02-R]` **Verify/Resend Red**: Crear tests para captura de token (Body), vista de reenvío y manejo de expiración.
     - **Agente responsable**: `frontend-tester`
     - **DoD**: Tests fallan (RED); **test de captura y respuesta visual ante 410 Gone (Token Expirado)**; validación de que el token NUNCA se envía via Query Param al backend; definición de tests para la vista `/auth/resend` (Solicitud de email) s/ Spec L561; **test de seguridad verifica que la URL final no contiene el token en el historial del navegador (purgado post-captura)**; utilización obligatoria de Clock Mocking (`cy.clock()`) para validar la liberación del botón de reenvío tras 60s sin esperas reales.
-- [ ] `[TSK-I2-F02-G]` **Landings Impl Green**: Crear vistas de `/auth/verify` y `/auth/resend`.
+- [ ] `[TSK-I2-F02-G1]` **Verify UI Impl**: Crear vista de procesamiento de token de verificación.
     - **Agente responsable**: `frontend-coder`
-    - **DoD**: `/auth/verify` procesa el token via POST Body e implementa **persistencia temporal del token en `sessionStorage` (Anti-F5 resilience)** y **limpieza inmediata de la URL (URL Sanitization mediante `router.replace`) post-captura**; `/auth/resend` implementado con campo de email y bloqueo de botón de 60s tras éxito s/ Spec L563 **persistido en `localStorage` (Anti-F5 bypass)**; el estado "Expired" en verificación redirige correctamente a la nueva vista de reenvío; **inyección mandatoria del header `Accept-Language: es` en todas las peticiones de verificación y reenvío**.
+    - **DoD**: `/auth/verify` procesa el token via POST Body e implementa **persistencia temporal en `sessionStorage` (Anti-F5 resilience)** y **limpieza inmediata de la URL post-captura**; inyección de `Accept-Language: es`.
+- [ ] `[TSK-I2-F02-G2]` **Resend UI Impl**: Crear vista de solicitud de reenvío de token.
+    - **Agente responsable**: `frontend-coder`
+    - **DoD**: `/auth/resend` implementado con campo de email y bloqueo de botón de 60s tras éxito **persistido en `localStorage` (Anti-F5 bypass)**; redirección al estado "Expired" s/ Spec.
 - [ ] `[TSK-I2-F02-RF]` **Full Stack Refactor**: Alineación de toda la comunicación Auth con el SOP Global (Headers, Latencia, Error Handling).
     - **Agente responsable**: `frontend-coder`
     - **DoD**: Interceptores procesan 429 y 503 de auth; los indicadores de salud se mantienen visibles; normalización de respuestas locales; implementación de lógica de notificación específica para el usuario ante `warning_code: EMAIL_DISPATCH_FAILED`.
@@ -359,7 +387,7 @@ graph TD
     - **DoD**: Documento de cierre destaca la implementación del Registro Seguro y Resiliencia en Email.
 - [ ] `[TSK-I2-Z03-H]` **Handoff & Lecciones**: Consolidación de deuda técnica y aprendizajes.
     - **Agente responsable**: `session-closer`
-    - **DoD**: `PROJECT_handoff.md` actualizado para Iteración 3 (Login & Captcha).
+    - **DoD**: `docs/governance/PROJECT_handoff.md` actualizado para Iteración 3 (Login & Captcha).
 - [ ] `[TSK-I2-Z04-P]` **Git Push Final**: Sincronización del estado de Iteración 2 al remoto.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: Repositorio en GitHub sincronizado con la versión certificada de I2.

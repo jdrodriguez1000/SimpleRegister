@@ -1,6 +1,6 @@
 ---
 name: session-close-handoff
-description: Protocolo técnico de consolidación de contexto y persistencia de estado mediante PROJECT_handoff.md para garantizar la continuidad del desarrollo.
+description: Protocolo técnico de consolidación de contexto y persistencia de estado mediante docs/governance/PROJECT_handoff.md para garantizar la continuidad del desarrollo.
 user-invocable: false
 agent: session-closer
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
@@ -11,7 +11,7 @@ allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 Este protocolo define los estándares obligatorios para capturar, estructurar y persistir el estado exacto de un proyecto de software antes de finalizar una sesión de trabajo. Su objetivo fundamental es garantizar que cualquier relevo técnico (humano o agente) pueda retomar la ejecución con **Cero Pérdida de Contexto**.
 
 ## 🛡️ Consolidación de Estado (Checkpoint de Ingeniería)
-Antes de dar por concluida la sesión, se debe reconstruir y documentar el mapa táctico del proyecto en el archivo central de persistencia `PROJECT_handoff.md`:
+Antes de dar por concluida la sesión, se debe reconstruir y documentar el mapa táctico del proyecto en el archivo central de persistencia `docs/governance/PROJECT_handoff.md`:
 
 1.  **Identificación de Coordenadas de Proyecto**:
     -   **Ubicación en el Roadmap**: Extraer la Fase y Etapa activa desde el plan maestro de ejecución (`PROJECT_plan.md`).
@@ -25,7 +25,7 @@ Antes de dar por concluida la sesión, se debe reconstruir y documentar el mapa 
     -   **Accionabilidad Quirúrgica**: Formular la próxima acción inmediata con absoluta precisión. Debe ser una tarea clara, autocontenida y lista para ser ejecutada sin necesidad de re-analizar el historial completo de la conversación previa.
 
 ## 📝 Estructura Obligatoria del Documento de Handoff
-El archivo `PROJECT_handoff.md` debe organizarse estrictamente en las siguientes secciones funcionales:
+El archivo `docs/governance/PROJECT_handoff.md` debe organizarse estrictamente en las siguientes secciones funcionales:
 
 -   **§1 Coordenadas de Ejecución**: Ubicación actual en el ciclo de vida del proyecto y capas técnicas activas.
 -   **§2 Hitos y Avance de Etapa**: Estado visual del progreso y descripción de los hitos alcanzados durante la sesión.
