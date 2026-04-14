@@ -1,10 +1,10 @@
-# 🤝 Project Handoff — Iteración 2: Bloque 8 (AUTH-SCHEMA) COMPLETADO · Etapa 2.1.0 ✅
+# 🤝 Project Handoff — Iteración 2: Bloque 9 (SAFE REGISTRY) COMPLETADO · Etapa 2.2.0 ✅
 
-**Estado Actual:** Bloque 8 — Auth Schema & Security (Persistence Layer) completado y certificado. Ciclo TDD completo ejecutado (RED → GREEN → REFACTOR → VAL → CERT). 513/514 tests PASS (1 fallo preexistente no bloqueante en `redis_resilience.test.ts`).
+**Estado Actual:** Bloque 9 — Registro de Usuario & Safe Registry (Backend) completado y certificado. Ciclo TDD completo ejecutado (RED → GREEN → REFACTOR → VAL → CERT). 639/640 tests PASS (1 fallo preexistente no bloqueante en `redis_resilience.test.ts` — ámbito B03, fuera de B09).
 
 **Fecha de Corte:** 2026-04-14
-**Rama Activa:** `feat/i2_b8_auth_schema` (clean working tree)
-**Próxima Sesión Objetivo:** Iniciar **Bloque 9 — Registro de Usuario & Safe Registry [Etapa 2.2.0]** con tarea `TSK-I2-B02-R` (`backend-tester`).
+**Rama Activa:** `feat/i2_b8_auth_schema` (pendiente push + PR con trabajo de Bloque 9)
+**Próxima Sesión Objetivo:** Iniciar **Bloque 10 — Verificación & Resend Logic [Etapa 2.3.0]** con tarea `TSK-I2-B03-R` (`backend-tester`).
 
 ---
 
@@ -13,135 +13,132 @@
 | Campo | Valor |
 |---|---|
 | **Iteración** | Iteración 2 — Registro y Validación de Origen (**EN CURSO**) |
-| **Bloque Actual** | Bloque 8 — Auth Schema & Security (Persistence Layer) (**COMPLETADO**) |
-| **Etapa** | 2.1.0 — Backend Persistence Layer & Security Foundation |
-| **Rama activa** | `feat/i2_b8_auth_schema` |
-| **Tareas B8** | 7/7 completadas `[x]` (R, G1, G2, G3, RF, V, C) |
+| **Bloque Actual** | Bloque 9 — Registro de Usuario & Safe Registry (Backend) (**COMPLETADO**) |
+| **Etapa** | 2.2.0 — Backend Registration & Privacy Layer |
+| **Rama activa** | `feat/i2_b8_auth_schema` (incluye trabajo de B09, sin push aún) |
+| **Tareas B09** | 7/7 completadas `[x]` (R, G1, G2, G3, RF, V, C) |
 | **Agentes que actuaron** | `backend-tester`, `backend-coder` (×4), `backend-reviewer` |
-| **Capas impactadas** | Backend (TypeScript services, DB schemas, security utils, test suite) |
-| **Progreso Bloque 8** | 7/7 tareas [x] · 92 tests nuevos (51 RED + 41 VAL) todos GREEN |
-| **Progreso Iteración 2** | 1/13 bloques completados (Bloque 7.5 sincronización + Bloque 8) = 15.4% de I2 |
-| **Progreso Global** | 33 + 7 = 40 tareas [x] de ~130 totales = 30.8% del proyecto |
+| **Capas impactadas** | Backend (services, middleware, test suites) |
+| **Progreso Bloque 9** | 7/7 tareas [x] · ~121 tests nuevos (RED + VAL) todos GREEN |
+| **Progreso Iteración 2** | 2/13 bloques completados (B08 + B09) ≈ 15.4% → avanzando |
+| **Progreso Global** | ~47 tareas [x] de ~130 totales ≈ 36% del proyecto |
 
 ---
 
-## §2 Hitos y Avance de Etapa — Bloque 8
+## §2 Hitos y Avance de Etapa — Bloque 9
 
-### Bloque 8 — Auth Schema & Security (Persistence Layer) [Etapa 2.1.0] ✅ COMPLETADO
+### Bloque 9 — Registro de Usuario & Safe Registry (Backend) [Etapa 2.2.0] ✅ COMPLETADO
 
-#### **TSK-I2-B01-R** — Auth Schema Red ✅
+#### **TSK-I2-B02-R** — Register Contract Red ✅
 - **Agente:** `backend-tester`
-- **Resultado:** Suite RED creada en `src/__tests__/auth/auth_schema.test.ts`
-- **Evidencia:** 51 tests (todos fallando en estado RED inicial)
+- **Resultado:** Suite RED creada en `src/__tests__/auth/register.test.ts`
+- **Evidencia:** ~65 tests (estado RED inicial → GREEN tras implementación)
 - **Cobertura de Tests:**
-  - SOP mandatorio (Headers X-Request-ID, Version, Timestamp, Content-Type)
-  - Modelo User (email, birthdate Plain-Date YYYY-MM-DD, status UNVERIFIED)
-  - Modelo AuthToken (token_hash SHA-256, issued_at, expires_at, user_id FK)
-  - Clock mocking (Jest `useFakeTimers`) para validación de expiración
-  - Collision detection (distributed lock timeout)
-  - Edge cases: 29-Feb leap year, password UTF-8 > 128 bytes
-  - I18N fallback (invalid locale → 'es' automático)
+  - Campo email: formato RFC 5322, longitud 5-254, normalización lowercase
+  - Campo password: regex de complejidad + límite 128 BYTES UTF-8 (`Buffer.byteLength`)
+  - Campo birthdate: YYYY-MM-DD, mayores de 18 años, minDate 1900-01-01, leap-year aware (29-Feb)
+  - Campo terms_accepted: boolean estricto (no string, no truthy)
+  - Respuesta 201: user_id + token_expires_at (Now + 24h)
+  - Respuesta 400 completa: INVALID_EMAIL, WEAK_PASSWORD, INVALID_AGE, TERMS_NOT_ACCEPTED, MALFORMED_REQUEST
+  - Respuesta 429: REGISTRATION_LIMIT_EXCEEDED + X-RateLimit-* headers
+  - Respuesta 503: SYSTEM_DEGRADED (fail-closed RNF9)
+  - Anti-enumeración: colisión de email → 201 dummy (mismo código que éxito)
+  - SOP compliance: `version` + `timestamp` mandatorios en TODAS las respuestas
 
-#### **TSK-I2-B01-G1** — Auth Persistence Impl ✅
+#### **TSK-I2-B02-G1** — Register Service Core ✅
 - **Agente:** `backend-coder`
-- **Resultado:** Esquemas de DB creados
+- **Resultado:** Caso de uso de registro implementado
 - **Archivos Creados:**
-  - `src/lib/db/schema/users.ts` — Interface `User` con `UserStatus` type
-  - `src/lib/db/schema/auth_tokens.ts` — Interface `AuthToken`
+  - `src/lib/services/register_service.ts` — Función `registerUser()` con flujo completo
 - **Especificidad Técnica:**
-  - `birthdate: string` (Plain-Date YYYY-MM-DD, evita timezone drift)
-  - `status: UserStatus` con `default: 'UNVERIFIED'` (UNVERIFIED | ACTIVE | DELETED)
-  - `minDate: 1900-01-01` (RNF3)
-  - Leap-year aware (29-Feb validación en edad)
-  - Token hashing SHA-256 (no texto plano en DB)
+  - Clean Architecture: no importa Next.js, no importa ORM — agnóstico de framework
+  - Guard clauses en `validateRequest()` — retorna primer error con semántica SOP
+  - `Buffer.byteLength(password, 'utf8') > 128` — validación de bytes, no chars
+  - Anti-enumeración: colisiones (email duplicado) → 201 `dummy` con UUID rotativo
+  - `buildSopBase()` + `buildSopHeaders()` garantizan esquema SOP en TODA respuesta
+  - `newUuid()` + `nowIso()` como utilidades atómicas nombradas
 
-#### **TSK-I2-B01-G2** — Security & I18N Utils ✅
+#### **TSK-I2-B02-G2** — Rate Limiter Register ✅
 - **Agente:** `backend-coder`
-- **Resultado:** Utilidades de seguridad e internacionalización
+- **Resultado:** Middleware de rate limiting específico para registro
 - **Archivos Creados:**
-  - `src/lib/services/age_validation.ts` — `validateAge()` + `isOver18()` functions
-  - `src/lib/utils/i18n.ts` — `resolveLanguage()` con RFC 5646 + fallback 'es'
+  - `src/lib/middleware/register_rate_limiter.ts` — Factory `createRegisterRateLimiter()`
 - **Especificidad Técnica:**
-  - Validación de edad usando Plain-Date logic (cálculo de años calendario sin drift)
-  - I18N matching: `es-MX` → `es` (prefix extraction), fallback a 'es'
-  - Rechazo explícito de payloads > 128 bytes (RNF1)
+  - Fixed Window diario: 5 req/día/IP
+  - Reset a las 00:00 UTC: `nextMidnightUtcEpoch()` para TTL dinámico
+  - `X-RateLimit-Reset` en Unix Epoch (segundos), no ISO-8601
+  - Fail-Closed (RNF9): Redis caído → `CACHE_UNAVAILABLE` → 503 SYSTEM_DEGRADED
+  - Interfaz `RateLimiterStore` exportada para inyección de dependencias en tests
 
-#### **TSK-I2-B01-G3** — Purge Background Logic ✅
+#### **TSK-I2-B02-G3** — Email Dispatch Integration ✅
 - **Agente:** `backend-coder`
-- **Resultado:** Worker de purga con bloqueos distribuidos
-- **Archivos Creados:**
-  - `src/lib/services/purge_worker.ts` — `acquirePurgeLock()` / `releasePurgeLock()`
+- **Resultado:** Integración de envío de email en flujo de registro
 - **Especificidad Técnica:**
-  - Redis Distributed Locking (SET NX PX TTL:600s)
-  - Fail-safe RNF9: Si Redis está down, fallback a in-memory lock (tests)
-  - Finally block garantizado para liberación de lock
-  - Modo degradado en environments sin Redis (testing)
+  - Degradación graciosa: fallo de email → 201 con `warning_code: EMAIL_DISPATCH_FAILED`
+  - El registro NO se revierte si el email falla (la cuenta se crea igualmente)
+  - `status: success` preservado en respuesta con `warning_code`
 
-#### **TSK-I2-B01-RF** — Security Hardening ✅
+#### **TSK-I2-B02-RF** — Register Refactor ✅
 - **Agente:** `backend-coder`
-- **Resultado:** Hardening de seguridad y sanitización de logs
-- **Archivos Creados:**
-  - `src/lib/utils/token_hash.ts` — `hashToken()` SHA-256 con normalización lowercase
-  - `src/lib/utils/log_sanitizer.ts` — `sanitizeLogData()` enmascarando (password, token, otp)
+- **Resultado:** Refactorización y hardening del servicio
 - **Especificidad Técnica:**
-  - SHA-256 token hashing (no reversible)
-  - Normalización a lowercase antes de hashing
-  - Log sanitizer enmascarando campos sensibles con `***`
+  - Centralización de mensajes en mapa `MESSAGES` (español)
+  - Centralización de error codes en constantes (inglés snake_case)
+  - Separación de `validateBirthdate()` como sub-función por SRP
+  - `isCalendarDateValid(y, m, d)` — validación de días en mes (sin usar `Date`)
+  - Deuda técnica menor: `24 * 60 * 60 * 1000` sin alias `ONE_DAY_MS` (DT-I2-B02-02)
 
-#### **TSK-I2-B01-V** — Auth Persistence Val ✅
+#### **TSK-I2-B02-V** — Register Privacy Val ✅
 - **Agente:** `backend-tester`
-- **Resultado:** Suite de validación e integración
+- **Resultado:** Suite de validación de privacidad
 - **Archivo Creado:**
-  - `src/__tests__/auth/auth_persistence_val.test.ts` — 41 tests de integración (todos GREEN)
+  - `src/__tests__/auth/register_privacy_val.test.ts` — ~56 tests de penetración (todos GREEN)
 - **Cobertura de Tests:**
-  - No-reversibilidad SHA-256
-  - Purga física de registros expirados (7 días, Mock Clock)
-  - Resiliencia del Purge Worker ante fallos de Redis
-  - Passwords multibyte (UTF-8 > 128 bytes)
-  - Paridad 29-Feb entre frontend y backend
-  - Log sanitizer verifica enmascaramiento
+  - Anti-enumeración: atacante no puede distinguir email nuevo vs duplicado
+  - UUID dummy rotativo: 10 llamadas sucesivas en colisión → 10 UUIDs distintos (prueba estadística)
+  - `X-RateLimit-Reset`: número Unix Epoch positivo (no string ISO-8601)
+  - `X-RateLimit-Remaining`: decrementa entre llamadas consecutivas (misma IP)
+  - `Retry-After` en 429 como número de segundos
+  - Inmutabilidad de idioma: `error_code` en inglés snake_case / `message` en español
+  - Warning code `EMAIL_DISPATCH_FAILED` en degradación graciosa
+  - SOP compliance de `version` y `timestamp` en TODOS los status codes (201, 400, 429, 503)
 
-#### **TSK-I2-B01-C** — Security Architecture Cert ✅
+#### **TSK-I2-B02-C** — Safe Registry Cert ✅
 - **Agente:** `backend-reviewer`
-- **Resultado:** Certificación arquitectónica aprobada sin bloqueos
-- **Certificado Emitido:** (Inline en decisión)
-- **Veredicto:** CERT APROBADO
+- **Resultado:** Certificación aprobada
+- **Certificado:** `audits/governance/cert_tsk_i2_b02_c.md`
+- **Veredicto:** CERTIFIED — Con Minor Observation
 - **Hallazgos:**
+  - 24/24 contratos de `PROJECT_spec.md` verificados
   - 0 errores bloqueantes
-  - 3 WARNs no-bloqueantes registrados:
-    - W1: Campo `verified_at` ausente en esquema User (puede agregarse post-Launch)
-    - W2: Validación semántica de fecha (rango 1900-01-01 a hoy) no explícitamente documentada
-    - W3: Ownership del lock distribuido (no validar que proceso A no libera lock de B)
+  - 1 MINOR: Magic number `24 * 60 * 60 * 1000` sin alias semántico → registrado como DT-I2-B02-02
+  - 1 GAP documentado: ausencia de `route.ts` para el adaptador HTTP (DT-I2-B02-01)
 
-**Tests Totales Bloque 8:** 92 tests (51 RED + 41 VAL), todos GREEN ✅
+**Tests Totales Bloque 9:** ~121 tests (RED + VAL), todos GREEN ✅
 
 ---
 
-## §3 Inventario Técnico de Cambios (Bloque 8)
+## §3 Inventario Técnico de Cambios (Bloque 9)
 
 ### Archivos Creados
 | Archivo | Propósito | Tarea |
 |---------|-----------|-------|
-| `src/__tests__/auth/auth_schema.test.ts` | Suite RED: 51 tests — validación de esquema, SOP, modelos | B01-R |
-| `src/__tests__/auth/auth_persistence_val.test.ts` | Suite VAL: 41 tests — integración, resiliencia, seguridad | B01-V |
-| `src/lib/db/schema/users.ts` | Interfaz User: email, birthdate, status, timestamps | B01-G1 |
-| `src/lib/db/schema/auth_tokens.ts` | Interfaz AuthToken: token_hash, issued/expires_at, user_id | B01-G1 |
-| `src/lib/services/age_validation.ts` | Funciones validateAge() e isOver18() Plain-Date aware | B01-G2 |
-| `src/lib/utils/i18n.ts` | Función resolveLanguage() RFC 5646 + fallback 'es' | B01-G2 |
-| `src/lib/services/purge_worker.ts` | Worker de purga con Redis distributed locking | B01-G3 |
-| `src/lib/utils/token_hash.ts` | Función hashToken() SHA-256 + normalización lowercase | B01-RF |
-| `src/lib/utils/log_sanitizer.ts` | Función sanitizeLogData() — enmascaramiento (password, token, otp) | B01-RF |
+| `src/__tests__/auth/register.test.ts` | Suite RED: ~65 tests — contrato completo del endpoint de registro | B02-R |
+| `src/__tests__/auth/register_privacy_val.test.ts` | Suite VAL: ~56 tests — privacidad, anti-enumeración, SOP | B02-V |
+| `src/lib/services/register_service.ts` | Caso de uso `registerUser()` — orquestación del flujo completo | B02-G1/RF |
+| `src/lib/middleware/register_rate_limiter.ts` | Factory `createRegisterRateLimiter()` — Fixed Window 5/día UTC | B02-G2 |
+| `audits/governance/cert_tsk_i2_b02_c.md` | Reporte de certificación firmado por `backend-reviewer` | B02-C |
 
 ### Archivos Modificados
 | Archivo | Cambio | Razón |
 |---------|--------|-------|
-| `docs/governance/PROJECT_backlog.md` | Tareas B01-R/G1/G2/G3/RF/V/C marcadas `[x]` | Auditoría de progreso |
-| **Sin cambios adicionales** | Estado CLEAN después de TSK-I2-B01-C | Todo refactoring incluido en G3/RF |
+| `docs/governance/PROJECT_backlog.md` | Tareas B02-R/G1/G2/G3/RF/V/C marcadas `[x]` | Cierre de Bloque 9 |
 
-### Índice de Cambios Estructurales
-- **Nueva capa:** `src/lib/db/schema/` (interfaces de dominio DB)
-- **Nueva capa:** `src/lib/services/` (lógica de negocio: age_validation, purge_worker)
-- **Extensión:** `src/lib/utils/` (funciones puras: i18n, token_hash, log_sanitizer)
+### Deuda Técnica Bloque 9
+| ID | Descripción | Severidad | Resolución Planificada |
+|----|-------------|-----------|----------------------|
+| DT-I2-B02-01 | `src/app/api/v1/auth/register/route.ts` — adaptador HTTP ausente | ALTA | Bloque 9-bis o inicio de ruta de integración E2E |
+| DT-I2-B02-02 | `24 * 60 * 60 * 1000` sin constante `ONE_DAY_MS` | BAJA | Al crear el route handler |
 
 ---
 
@@ -149,53 +146,50 @@
 
 ### 🚀 NEXT STEP — Acción Inmediata (Quirúrgica)
 
-**Tarea:** `TSK-I2-B02-R` — Register Contract Red (Backend)
+**Tarea:** `TSK-I2-B03-R` — Auth Workflows Red (Backend)
 **Agente:** `backend-tester`
-**Bloque:** Bloque 9 — Registro de Usuario & Safe Registry [Etapa 2.2.0]
-**Estimación:** ~2h (RED suite)
+**Bloque:** Bloque 10 — Verificación & Resend Logic [Etapa 2.3.0]
+**Estimación:** ~2-3h (RED suite)
 
 **Qué debe hacer:**
-1. Crear suite RED en `src/__tests__/auth/register.test.ts` con ~60-70 tests unitarios (estado FAILING)
-2. Cubrir contratos de `/api/auth/register`:
-   - Solicitud (email, password, birthdate, lang)
-   - Validación SOP (Headers X-Request-ID, Version, Timestamp)
-   - Respuesta 201 exitosa (user_id, status UNVERIFIED)
-   - Respuesta 400 (validation errors: email inválido, weak password, under 18, email duplicado)
-   - Respuesta 429 (rate limit superado)
-   - Respuesta 500 (error genérico, sin exposición de detalles)
-3. Validar con Mock Clock para timestamp consistency
-4. Cubrir edge cases:
-   - Email case-insensitive (normalization)
-   - Birthdate formato YYYY-MM-DD
-   - Password multibyte UTF-8 > 128 bytes (rechazo)
-   - Language fallback a 'es'
+1. Crear suite RED en `src/__tests__/auth/verify.test.ts` con tests unitarios (estado FAILING)
+2. Cubrir contratos de `POST /api/v1/auth/verify`:
+   - Token en body (no Query Param — spec L385 rechaza tokens en URL)
+   - Normalización de token a lowercase antes de comparar
+   - Respuesta 200: cuenta activada (`status: ACTIVE`)
+   - Respuesta 400: token inválido / malformado
+   - Respuesta 409: cuenta ya verificada (`ALREADY_VERIFIED`)
+   - Respuesta 410: token expirado (>24h)
+   - Respuesta 405: rechazar GET con `Method Not Allowed`
+   - Respuesta 503: `SYSTEM_DEGRADED` en rutas críticas
+   - Assertion mandatoria: campos SOP (`version`, `timestamp`) en TODAS las respuestas
+3. Cubrir contratos de `POST /api/v1/auth/resend`:
+   - Respuesta 200 genérica (sin revelar si email existe — anti-enumeración)
+   - Rate limit: 3 req/hr por clave compuesta `IP:Email`
+   - Colisión: cuenta ya activa → respuesta 200 dummy (anti-enumeración)
+4. Incluir test de seguridad: tokens enviados en Query Param (`?token=...`) deben ser rechazados (400/405) y NO deben aparecer en logs de acceso
 
 **Verificación previa obligatoria:**
-```bash
-cd /c/Users/USUARIO/Documents/Work/SimpleRegister
-npx jest --no-coverage                    # debe reportar 513/514 PASS
-npx tsc --noEmit                          # debe reportar 0 errores TypeScript
-git status                                 # debe estar limpio
-git diff HEAD --name-only                  # no debe haber cambios sin commit
+```powershell
+cd C:\Users\USUARIO\Documents\Work\SimpleRegister
+npx jest --no-coverage 2>&1 | Select-Object -Last 10   # debe reportar 639/640 PASS
+npx tsc --noEmit                                        # debe reportar 0 errores TypeScript
+git status                                              # verificar rama activa y cambios pendientes
 ```
 
+> **⚠️ Aviso:** Ejecutar `/git-push` antes de iniciar B03-R para sincronizar el trabajo del Bloque 9 con el repositorio remoto.
+
 ### Bloqueadores Conocidos
-- **Ninguno** — Bloque 9 (Register) puede iniciar inmediatamente.
-- Preocupación menor: El Bloque 8 no incluye migraciones Drizzle explícitas (`drizzle/migrations/`), pero esto está dentro del scope de Bloque 9 (Register G1 incluye persistencia física).
+- **Ninguno técnico** — Bloque 10 puede iniciar inmediatamente.
+- **Acción previa recomendada:** Push de la rama actual para preservar el trabajo de B09 en remoto.
 
-### Deuda Técnica Registrada (no bloquea Bloque 9)
-| ID | Deuda | Severidad | Resolución Planificada |
-|----|-------|-----------|----------------------|
-| DT-B08-01 | Schema validation: no validación semántica de rango de fecha (1900-01-01 to today) | BAJA | Bloque 9 (Register validation layer) |
-| DT-B08-02 | `verified_at` timestamp ausente en User schema | BAJA | Post-Launch enhancement |
-| DT-B08-03 | Lock ownership validation (distributed) no implementado | MEDIA | Bloque 10.1 (Email Worker) donde purga interactúa con tokens |
-
-### Riesgos Técnicos Mitigados
-✅ **RNF3 (Age Validation):** Implementado Plain-Date logic, leap-year aware, sin drift de zona horaria
-✅ **RNF1 (Password Security):** Esquema preparado para Argon2id; rechazo de > 128 bytes UTF-8
-✅ **RNF9 (Fail-Closed):** Purge Worker con distributed locking y fallback in-memory
-✅ **Security (Token Hashing):** SHA-256 no-reversible, normalización lowercase
-✅ **Auditoría (Log Sanitizer):** Enmascaramiento de campos sensibles
+### Riesgos Técnicos Mitigados en B09
+✅ **Anti-enumeración:** Colisiones de email → 201 dummy con UUID rotativo — atacante no distingue
+✅ **Rate Limiting UTC:** Fixed Window 5/día con reset preciso a 00:00 UTC (no 24h deslizante)
+✅ **Fail-Closed RNF9:** Redis caído en rate limiter → 503, no paso libre
+✅ **SOP Compliance:** `version` + `timestamp` en TODA respuesta (verificado en 24/24 contratos)
+✅ **Clean Architecture:** `register_service.ts` sin dependencia de Next.js ni ORM
+✅ **Degradación graciosa:** Fallo de email → 201 con `warning_code` (no rollback del registro)
 
 ---
 
@@ -237,3 +231,12 @@ git diff HEAD --name-only                  # no debe haber cambios sin commit
 - **Fricción Resuelta — Distributed Lock Ownership:** El Purge Worker usa Redis SET NX PX con TTL:600s, pero no valida si el proceso que intenta liberar el lock es el mismo que lo adquirió. Esto está documentado como WARN no-bloqueante (DT-B08-03) porque el riesgo es bajo en este contexto (purga diaria, no concurrencia intensiva).
 - **Optimización — Log Sanitizer:** Implementación de `sanitizeLogData()` que enmascariza campos sensibles (password, token, otp) con `***` previene leaks en auditoría y logs. Esto es crítico para cumplimiento legal (GDPR/privacidad).
 - **Recomendación Post-Bloque 8:** El Bloque 9 (Register) debe implementar persistencia física (Drizzle migrations) y endpoint `/api/auth/register`. Las utilidades de seguridad e I18N del Bloque 8 están listas para reutilización.
+
+### [2026-04-14] — Sesión: Bloque 9 - Registro de Usuario & Safe Registry ✅
+- **Éxito Técnico:** Ciclo TDD completo ejecutado (RED → GREEN → REFACTOR → VAL → CERT) sin bloqueadores. ~121 tests nuevos, todos GREEN. 24/24 contratos del `PROJECT_spec.md` verificados.
+- **Decisión Arquitectónica — Clean Use Case:** `register_service.ts` es agnóstico de framework (no importa Next.js ni ORM). Recibe `RegisterRequest` (POJO) y retorna `RegisterResult` (statusCode + headers + body). El adaptador HTTP (`route.ts`) es deuda técnica conocida (DT-I2-B02-01).
+- **Decisión de Privacidad — Anti-enumeración mediante 201 dummy:** En caso de colisión de email (email ya registrado), el servicio retorna 201 idéntico al éxito real, con un UUID dummy rotativo generado por `crypto.randomUUID()`. Esto hace imposible para un atacante distinguir entre un email nuevo y uno existente.
+- **Decisión de Rate Limit — Fixed Window UTC (no deslizante):** El límite de 5 req/día usa reset a las 00:00 UTC exactas (calculado mediante `nextMidnightUtcEpoch()`), no una ventana de 24h deslizante. Esto simplifica la predictibilidad del limite para el usuario legítimo y es más fácil de razonar.
+- **Decisión de Resiliencia — Fail-Closed con degradación graciosa dual:** (a) Redis caído en rate limiter → 503 SYSTEM_DEGRADED (Fail-Closed). (b) Email dispatch fallido → 201 con `warning_code: EMAIL_DISPATCH_FAILED` (degradación graciosa diferente). Ambos caminos son distintos; el primero es crítico, el segundo es best-effort.
+- **Fricción de certificación — Fallo en `redis_resilience.test.ts`:** El test `[RED] checkRateLimit permite la 1ª peticion` falla porque el mock de ioredis rechaza `connect()`. Este fallo pertenece a B03 (Bloque 3, Iteración 1) y es una regresión preexistente, no bloqueante para B09. El `backend-reviewer` lo aisló formalmente en el reporte de certificación.
+- **Deuda técnica menor — Magic Number `ONE_DAY_MS`:** `24 * 60 * 60 * 1000` aparece sin alias semántico en las líneas 440 y 461 de `register_service.ts`. Sin impacto funcional — los tests cubren el comportamiento correcto. Se extrae en la próxima iteración al crear el `route.ts`.

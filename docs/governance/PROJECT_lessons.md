@@ -228,3 +228,51 @@
 - Cobertura de seguridad: Password hashing (Argon2id ready), Token hashing (SHA-256), Log sanitization (✓), Age validation (✓ Plain-Date)
 - Deuda no-bloqueante: 2 items (verified_at, lock ownership) — ambos planificados para Bloques 9-10
 - Riesgos mitigados: 5 de 5 (RNF1, RNF3, RNF9, Seguridad, Auditoría)
+
+---
+
+## Sesión: 2026-04-14 (Fase 2 / Etapa 2.2.0 — Bloque 9: Registro de Usuario & Safe Registry)
+
+### ✅ Éxitos y Aciertos Técnicos
+
+1. **Anti-enumeración estructural mediante 201 dummy con UUID rotativo:** La política de privacidad exige que un atacante no pueda distinguir entre un email nuevo y uno ya registrado. La solución adoptada (retornar 201 con un UUID generado por `crypto.randomUUID()` en cada colisión) es más sólida que un 409 silencioso, ya que el cuerpo de respuesta es estructuralmente idéntico al de un registro exitoso. La prueba estadística de 10 UUIDs distintos en 10 llamadas confirma que no hay patrones predecibles.
+
+2. **Fixed Window con reset UTC exacto (no ventana deslizante):** El rate limit de 5 req/día se resetea a las 00:00 UTC exactas (calculado con `nextMidnightUtcEpoch()`), en lugar de una ventana móvil de 24h. Esto hace el comportamiento predecible para el usuario legítimo ("puedo volver a intentar mañana") y simplifica la lógica de auditoría.
+
+3. **Degradación graciosa dual — Fail-Closed vs Graceful Degradation:** El Bloque 9 demostró que existen dos clases de fallo que merecen tratamiento radicalmente distinto: (a) Redis caído en rate limiter → Fail-Closed (503) porque el sistema no puede garantizar la política de rate limit; (b) Email service fallido → Graceful Degradation (201 + `warning_code`) porque la cuenta se creó exitosamente y el email puede reintentarse. La distinción semántica entre "fallo de infraestructura crítica" y "fallo de servicio best-effort" es clave para el diseño de resiliencia.
+
+4. **Clean Architecture en el caso de uso de registro:** `register_service.ts` no importa Next.js, ORM ni Redis. Trabaja con `RegisterRequest` y `RegisterResult` (POJOs puros). El rate limiter se inyecta mediante la interfaz `RateLimiterStore`. Resultado: 121 tests ejecutados sin Docker ni servidor real, con tiempos de ejecución < 2 segundos.
+
+5. **Validación de bytes UTF-8 (no chars) para passwords:** Usar `Buffer.byteLength(password, 'utf8') > 128` en lugar de `password.length > 128` garantiza que un password con emojis o kanji (que ocupan 3-4 bytes por char) no bypass el límite de 128. Esta distinción sutil previene un vector de ataque de desbordamiento de buffer en Argon2id.
+
+6. **`crypto.randomUUID()` nativo de Node.js:** Se eligió el módulo nativo de Node.js en lugar de `uuid` (npm) para generar UUIDs v4. Esto elimina una dependencia externa, reduce el bundle size y garantiza compatibilidad sin polyfills.
+
+### ⚠️ Fricciones y Desafíos
+
+1. **Regresión preexistente de B03 en `redis_resilience.test.ts`:** El test `[RED] checkRateLimit permite la 1ª peticion` falla porque el mock global de ioredis (que simula Redis totalmente caído) también bloquea el `connect()` interno de `checkRateLimit`. Este es un conflicto de contexto de mock entre la suite B03 (diseñada para probar el módulo `rate_limit.ts` con Redis real) y el estado actual donde el módulo ya existe. **Causa raíz:** La suite fue escrita en fase RED cuando el módulo no existía; al implementarse el módulo, el comportamiento del mock cambió. **Impacto:** 1/640 tests fallando — no bloquea B09 pero sí es deuda técnica de B03. **Acción requerida:** Revisar y corregir el mock en `redis_resilience.test.ts` durante la revisión de B03-C.
+
+2. **Ausencia del route handler `route.ts` para `/api/v1/auth/register`:** El caso de uso (`register_service.ts`) está completo y certificado, pero el adaptador HTTP (Next.js `route.ts`) no existe todavía. Esto significa que el endpoint no es accesible desde el exterior y los tests E2E no pueden ejecutarse aún. **Causa:** El alcance del Bloque 9 cubre la lógica de negocio; el adaptador se delega a la fase de integración E2E. **Impacto:** No bloquea el ciclo TDD del Backend, pero sí bloquea el Bloque de Frontend de Registro (F201+). **Acción requerida:** Crear `src/app/api/v1/auth/register/route.ts` antes de iniciar el frontend de registro.
+
+3. **Magic Number `24 * 60 * 60 * 1000` sin constante semántica:** El valor de 24 horas en milisegundos aparece sin nombre en `register_service.ts`. No afecta la funcionalidad (los tests verifican el comportamiento correcto), pero viola el principio de Magic Numbers del protocolo `code-review-master`. **Resolución planificada:** Extraer como `const ONE_DAY_MS = 24 * 60 * 60 * 1000` al crear el `route.ts`.
+
+### 💡 Lecciones Clave y Recomendaciones
+
+> **Lección 1 — Anti-enumeración = 201 dummy, no 409 silencioso:**
+> La respuesta "correcta" a una colisión de email en un sistema de privacidad no es silenciar el error (404/409), sino devolver exactamente el mismo contrato que un éxito real. Esto requiere que el UUID dummy sea criptográficamente aleatorio (no derivado del email) y que el body sea semánticamente indistinguible. Aplicar este patrón en todos los endpoints donde la existencia de un recurso es información sensible.
+
+> **Lección 2 — Clean Architecture hace el TDD backend instantáneo:**
+> Al diseñar `register_service.ts` sin dependencias de Next.js ni Redis reales, los 121 tests del Bloque 9 ejecutaron en < 2 segundos sin Docker. El costo de la abstracción (interfaces `RateLimiterStore`, POJOs como contrato) es mínimo comparado con el beneficio: un ciclo TDD de feedback inmediato que no requiere infraestructura levantada.
+
+> **Lección 3 — Bytes vs chars en la validación de passwords multibyte:**
+> Todo sistema que imponga un límite de tamaño en texto de usuario debe usar `Buffer.byteLength(text, 'utf8')`, no `text.length`. Un emoji (`😀`) ocupa 4 bytes en UTF-8 pero cuenta como 1 char en JavaScript. Un password de 128 emojis tendría `length === 128` pero `byteLength === 512`. Esta distinción es crítica para Argon2id, que tiene un límite real en bytes de entrada.
+
+> **Lección 4 — Reset UTC exacto vs ventana deslizante — elige predictibilidad:**
+> Un rate limit con reset a las 00:00 UTC es más fácil de comunicar al usuario ("intenta mañana") que una ventana de 24h deslizante (que requiere comunicar "intenta después de las 14:32 de mañana"). Para rate limits de registro/onboarding, preferir resets absolutos en UTC. Para rate limits de API de uso intensivo, preferir ventanas deslizantes.
+
+> **Recomendación para Bloque 10 (Verify + Resend):** La política anti-enumeración del `/resend` debe ser idéntica a la del registro: respuesta 200 genérica independientemente de si el email existe o no. El límite de 3 req/hr debe usar clave compuesta `IP:Email` (no solo IP) para prevenir que un solo atacante agote el límite de todos los usuarios desde una IP compartida.
+
+**Métricas de Impacto Bloque 9:**
+- Tests nuevos: ~121 (RED + VAL), 100% GREEN
+- Contratos verificados: 24/24 del `PROJECT_spec.md`
+- Deuda no-bloqueante: 2 items (route.ts, ONE_DAY_MS)
+- Riesgos mitigados: Anti-enumeración ✅, Rate Limit UTC ✅, Fail-Closed RNF9 ✅, Clean Architecture ✅, UTF-8 bytes ✅
