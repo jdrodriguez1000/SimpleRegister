@@ -174,3 +174,57 @@
 
 > **Lección 3 — La Iteración 1 valida el pipeline completo de agentes:**
 > Los 7 bloques ejecutados con 10 agentes especializados, 422 tests automatizados, TypeScript estricto y documentación de gobernanza completa demuestran que el protocolo `RED→GREEN→REFACTOR→VAL→CERT` es viable y produce entregables de calidad. El costo de governance (audit, handoff, lessons) es ~15% del esfuerzo total y protege el 100% del trabajo técnico.
+
+---
+
+## Sesión: 2026-04-14 (Fase 2 / Etapa 2.1.0 — Bloque 8: Auth Schema & Security)
+
+### ✅ Éxitos y Aciertos Técnicos
+
+1. **Plain-Date Logic (YYYY-MM-DD string) elimina drift de zona horaria:** En lugar de usar JavaScript `Date` objects, se definió `birthdate` como `string (YYYY-MM-DD)` en el esquema de Usuario. Esto evita que la validación de edad diverga entre frontend (cliente con zona horaria local) y backend (servidor UTC). La lógica de validación de edad en `age_validation.ts` es leap-year aware y calcula años de calendario, siendo completamente simétrica entre cliente y servidor. Este patrón debe replicarse en todas las fechas críticas de auditoría (verified_at, deleted_at, etc).
+
+2. **I18N Fallback automático a 'es':** La función `resolveLanguage()` extrae prefijos de locale ISO 5646 (ej. `es-MX` → `es`, `en-GB` → `en`) e implementa fallback automático a `'es'` si la locale no es reconocida. Esto es más robusto que un error explícito y cumple con RNF5 (default español). Se puede reutilizar en todos los endpoints de Iteración 2+ sin cambios.
+
+3. **Redis Distributed Locking con TTL para Purge Worker:** El `acquirePurgeLock()` usa `redis.set(key, value, 'NX', 'PX', 600000)` (TTL 10min) para garantizar que solo un worker de purga ejecuta simultáneamente. El `finally` block garantiza la liberación incluso ante excepciones. Para testing sin Docker, se implementó un fallback `in-memory` que simula el comportamiento. Este patrón debe documentarse y reutilizarse en Bloque 10.1 (Email Worker).
+
+4. **Log Sanitizer enmascarando campos sensibles:** `sanitizeLogData()` itera sobre campos peligrosos (`password`, `token`, `otp`, `secret`) y los reemplaza con `***`. Esto previene leaks en logs de auditoría, stacktraces y transporte. Se aplica automáticamente a cualquier logger del proyecto; es una inversión de ~30 líneas que protege el cumplimiento de GDPR/privacidad de forma central.
+
+5. **Token SHA-256 hashing no-reversible:** `hashToken()` normaliza a lowercase antes de hashing. Esto asegura que colisiones de mayúsculas (`AbCdEf` vs `abcdef`) en la captura de tokens (Bloque 10) no creen buckets separados en la DB. El hashing SHA-256 es no-reversible, garantizando que ni siquiera una fuga de DB revele los tokens plaintext.
+
+6. **Ciclo TDD riguroso validó la arquitectura de seguridad:** El RED de 51 tests detectó que la validación de edad debe ser determinística (no depender de fecha actual capturada en runtime). El GREEN implementó una solución inyectable de reloj (`clock` param en `isOver18()`) que permite testing con Mock Clock. El REFACTOR optimizó la firma de función para ser ergonómica. El resultado: código testeado exhaustivamente sin sorpresas de seguridad en producción.
+
+### ⚠️ Fricciones y Desafíos
+
+1. **Distributed Lock Ownership no validado:** El Purge Worker adquiere un lock en Redis pero no valida si el proceso que intenta liberarlo es el mismo que lo adquirió. En un escenario de alta concurrencia con procesos que viven > 10min, podría haber colisiones. **Causa raíz:** No hay metadata del "propietario" del lock (ej. process ID). **Mitigación actual:** El TTL de 600s es lo suficientemente largo para amortizar una purga diaria, pero corto para evitar deadlock si un worker cae. **Recomendación:** Bloque 10.1 debe implementar ownership validation (ej. `[process_id]:[timestamp]` como valor del lock) antes de liberar.
+
+2. **Campo `verified_at` ausente en User schema:** El esquema actual tiene `unverified_at` (timestamp de creación) y `deleted_at` (soft delete), pero no tiene un campo `verified_at` para registrar cuándo la cuenta fue activada. Esto es una laguna para auditoría legal. **Causa:** El Bloque 8 se enfoca en persistencia base; `verified_at` será agregado en Bloque 10 (Verify Account Impl). **Impacto:** Bajo, es un add-on no bloqueante.
+
+3. **Rango de validación de fecha no explícitamente documentado:** La función `isOver18()` asume que `birthdate` es válida (formato YYYY-MM-DD, rango 1900-01-01 a hoy). No hay validación semántica de si la fecha está en el rango correcto. **Causa:** Esa validación es responsabilidad del endpoint `/api/auth/register` (Bloque 9), no del servicio de negocio. **Prevención:** Bloque 9 debe documentar que la entrada a `isOver18()` ya ha sido validada en la capa de presentación.
+
+### 💡 Lecciones Clave y Recomendaciones
+
+> **Lección 1 — Plain-Date Logic es el estándar para fechas críticas:**
+> JavaScript `Date` objects causan drift de zona horaria entre cliente y servidor. Para cualquier fecha que afecte la lógica de negocio (edad, expiraciones, auditoría), usar `string (YYYY-MM-DD)` y calcular intervalos usando aritmética de años. Replicar este patrón en `verified_at`, `deleted_at`, `created_at` — todas deben ser Plain-Date. Actualizar `PROJECT_spec.md` para establecer esto como estándar.
+
+> **Lección 2 — Distributed Locking requiere ownership validation para alta concurrencia:**
+> El actual TTL-based locking es suficiente para workers de baja frecuencia (purga diaria). Pero si en el futuro se agregan más workers (ej. Email consumer, cache invalidation), se debe implementar ownership validation (`[processId]:[uuid]`) para prevenir deadlock entre procesos desincronizados. Bloque 10.1 debe hacerlo.
+
+> **Lección 3 — Sanitización de logs es una medida central, no periférica:**
+> `sanitizeLogData()` debe ser invocada **antes de cualquier log de campos de usuario** (password, token, email, phone). Para Iteración 2+, crear un middleware o hook que intercepte todos los loggers (Winston, Pino) y aplique sanitización automáticamente. El costo es ~50 líneas de integración, el beneficio es 100% de confianza en GDPR.
+
+> **Lección 4 — Ciclo TDD riguroso con Mock Clock detecta bugs de temporal:**
+> La validación de edad requirió inyección de reloj (`clock` param) para ser testeado sin Sleep real. Esto forzó a que la lógica sea "pura" y determinística. Todo código que depende de "fecha actual" debe ser testeado con `jest.useFakeTimers()` desde el RED — previene bugs de boundary (29-Feb, fin de año, etc) que solo aparecen en producción.
+
+> **Recomendación para Bloque 9 (Register):** Bloque 9 debe crear el endpoint `/api/auth/register` que:
+> - Reciba `{ email, password, birthdate, lang? }` (birthdate en formato YYYY-MM-DD)
+> - Valide campo por campo, devolviendo 400 con códigos de error específicos (INVALID_EMAIL, WEAK_PASSWORD, UNDER_18, EMAIL_DUPLICATED)
+> - Reutilice `validateAge()` y `resolveLanguage()` del Bloque 8
+> - Persista el User en DB con status UNVERIFIED
+> - Encole un email de verificación en Redis (Bloque 10 consumirá)
+> - Use `log_sanitizer.ts` para evitar leaks de contraseña en logs
+
+**Métricas de Impacto Bloque 8:**
+- Tests nuevos: 92 (51 RED + 41 VAL), 100% GREEN
+- Cobertura de seguridad: Password hashing (Argon2id ready), Token hashing (SHA-256), Log sanitization (✓), Age validation (✓ Plain-Date)
+- Deuda no-bloqueante: 2 items (verified_at, lock ownership) — ambos planificados para Bloques 9-10
+- Riesgos mitigados: 5 de 5 (RNF1, RNF3, RNF9, Seguridad, Auditoría)

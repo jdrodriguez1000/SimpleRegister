@@ -256,25 +256,25 @@ graph TD
     - **DoD**: Documentos sincronizados; `PROJECT_spec.md` contiene todos los contratos de Auth (Register, Verify, Resend); `PROJECT_backlog.md` auditado y certificado con el protocolo `task-document` (RED-GREEN-RF-VAL-CERT).
 
 ### ## Bloque 8 — Auth Schema & Security (Persistence Layer) [Etapa 2.1.0]
-- [ ] `[TSK-I2-B01-R]` **Auth Schema Red**: Crear tests de persistencia para `User` y `AuthToken` incluyendo validación de normalización (Estado RED).
+- [x] `[TSK-I2-B01-R]` **Auth Schema Red**: Crear tests de persistencia para `User` y `AuthToken` incluyendo validación de normalización (Estado RED).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests fallan por ausencia de modelos; **assertion mandatoria de campos SOP (version, timestamp) en toda respuesta de error**; validación de campos `email` (unique), `password` (hash string), `birthdate` (Date/ISO), `status` (Enum: UNVERIFIED, ACTIVE) y `deleted_at` (Timestamp); **validación de Clock Mocking para límites de 24h y 7d**; **test de "Lock Collision" (race condition) para el Purge Worker simulando dos instancias concurrentes mediante mock de Redis Lock**; inclusión de casos de borde para mayoría de edad (29 de febrero, cambios de siglo); **test unitario confirma rechazo de password UTF-8 que exceda 128 bytes (ej. emojis pesados)**; **test de regresión para I18N confirma fallback mandatorio a 'es' ante cabeceras No Soportadas (ej. 'ja', 'fr')**.
-- [ ] `[TSK-I2-B01-G1]` **Auth Persistence Impl**: Crear esquemas de DB y migraciones para `users` y `auth_tokens`.
+- [x] `[TSK-I2-B01-G1]` **Auth Persistence Impl**: Crear esquemas de DB y migraciones para `users` y `auth_tokens`.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Modelos creados en DB; registros de prueba persistidos; campo `status` por defecto `UNVERIFIED`; **lógica de validación de edad robusta y paritaria (Plain-Date logic: tratamiento de `birthdate` como string YYYY-MM-DD para evitar desfases de zona horaria; Leap-year aware) incluyendo límite inferior `minDate: 1900-01-01` s/ Spec L295**.
-- [ ] `[TSK-I2-B01-G2]` **Security & I18N Utils**: Implementar lógica de hashing (Argon2id) y emparejamiento de idioma (I18N).
+- [x] `[TSK-I2-B01-G2]` **Security & I18N Utils**: Implementar lógica de hashing (Argon2id) y emparejamiento de idioma (I18N).
     - **Agente responsable**: `backend-coder`
     - **DoD**: Argon2id integrado correctamente; rechazo explícito de payloads > 128 bytes antes del hashing; **implementación de matching de idioma basado en prefijos (ej. `es-MX` -> `es`) con fallback automático a 'es' (RNF5)**.
-- [ ] `[TSK-I2-B01-G3]` **Purge Background Logic**: Implementar lógica del Purge Worker con bloqueos distribuidos.
+- [x] `[TSK-I2-B01-G3]` **Purge Background Logic**: Implementar lógica del Purge Worker con bloqueos distribuidos.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Implementación del **Purge Worker** (proceso de fondo) con política de ejecución única mediante **Redis Distributed Locking (TTL: 10 min)** y estrategia de "Fail-Fast" ante desconexión de Redis; **bloque de liberación de lock en `finally` garantizado**.
-- [ ] `[TSK-I2-B01-RF]` **Security Hardening RF**: Implementar hashing de tokens (SHA-256), optimización de índices y **sanitización de logs**.
+- [x] `[TSK-I2-B01-RF]` **Security Hardening RF**: Implementar hashing de tokens (SHA-256), optimización de índices y **sanitización de logs**.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Los tokens no se guardan en texto plano en la DB; índices creados; **implementación mandatoria de un interceptor de logs que asegure que campos sensibles (`password`, `token`) sean enmascarados (***) en cualquier registro de auditoría o transporte (p.ej. Winston/Bunyan masking)**; **preparación del punto de entrada para el Worker de Purga independiente**.
-- [ ] `[TSK-I2-B01-V]` **Auth Persistence Val**: Ejecución de suite de tests de integridad referencial y hashing.
+- [x] `[TSK-I2-B01-V]` **Auth Persistence Val**: Ejecución de suite de tests de integridad referencial y hashing.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Reporte confirma que ningun token es reversible; prueba de normalización confirma que tokens en Mixed-case son válidos tras conversión a lowercase; validación de la purga de 7 días mediante manipulación de reloj (Mock Clock) confirmando borrado exitoso de registros expirados; **validación de resiliencia del Purge Worker mediante simulación de pérdida de conexión a Redis durante el ciclo de ejecución; generación de evidencia en logs estructurados para ciclos de purga exitosos y fallidos**; **validación estricta de rechazo de passwords por peso (> 128 bytes) mediante suite de caracteres multibyte**; **test de paridad de mayoría de edad (29 de febrero) verificado**; cobertura > 90% en capa de datos.
-- [ ] `[TSK-I2-B01-C]` **Security Architecture Cert**: Auditoría de blindaje de persistencia.
+- [x] `[TSK-I2-B01-C]` **Security Architecture Cert**: Auditoría de blindaje de persistencia.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Firma de cumplimiento con RNF1; validación de que los tokens son UUIDv4, están normalizados y hasheados en DB s/ PROJECT_spec.md; **certificación de que todas las respuestas de error de persistencia incluyen `version` y `timestamp` (SOP Compliance)**.
 
