@@ -91,7 +91,9 @@ services:
     image: postgres:16-alpine
     container_name: sr_db
     restart: unless-stopped
-    # SIN puertos expuestos al host — aislamiento total
+    # Habilitado para desarrollo local (host -> docker)
+    ports:
+      - "5432:5432"
     networks:
       - app_network
     environment:
@@ -132,7 +134,9 @@ services:
     image: redis:7-alpine
     container_name: sr_redis
     restart: unless-stopped
-    # SIN puertos expuestos al host — aislamiento total
+    # Habilitado para desarrollo local (host -> docker)
+    ports:
+      - "6379:6379"
     networks:
       - app_network
     command: >

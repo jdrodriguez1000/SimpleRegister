@@ -108,7 +108,7 @@ function createFailingTransport(): jest.Mocked<SmtpTransport> {
 
 beforeEach(() => {
   // Asegurar entorno de test — el worker usa implementación in-memory
-  process.env.NODE_ENV = 'test';
+  (process.env as any).NODE_ENV = 'test';
   jest.useFakeTimers();
 });
 
@@ -415,7 +415,7 @@ describe('Grupo 4 — Worker: Resiliencia Redis (Fail-Closed RNF9)', () => {
   it('debe retornar REDIS_UNAVAILABLE si Redis no está disponible', async () => {
     // Forzar modo Redis real (no test) y simular conexión fallida
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
+    (process.env as any).NODE_ENV = 'production';
 
     // Config sin transport — worker intentará usar Redis real (no disponible)
     const config: WorkerConfig = {
@@ -428,7 +428,7 @@ describe('Grupo 4 — Worker: Resiliencia Redis (Fail-Closed RNF9)', () => {
       config
     );
 
-    process.env.NODE_ENV = originalEnv;
+    (process.env as any).NODE_ENV = originalEnv;
 
     expect(result.success).toBe(false);
     expect(result.errorCode).toBe('REDIS_UNAVAILABLE');
