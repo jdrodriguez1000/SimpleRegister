@@ -129,8 +129,8 @@ export async function acquirePurgeLock(key: string, ttlMs: number): Promise<bool
       return false;
     }
 
-    // SET key value NX PX ttlMs — atómico: solo escribe si no existe
-    const result = await client.set(key, LOCK_VALUE, 'NX', 'PX', ttlMs);
+    // SET key value PX ttlMs NX — atómico: solo escribe si no existe
+    const result = await client.set(key, LOCK_VALUE, 'PX', ttlMs, 'NX');
     return result === 'OK';
   } catch {
     // Fail-safe: cualquier error de Redis retorna false

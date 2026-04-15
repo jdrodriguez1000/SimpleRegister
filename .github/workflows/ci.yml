@@ -1,0 +1,46 @@
+name: Verificación y CI (Integración Continua)
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  validate:
+    name: Validar Código y Calidad
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar Dependencias
+        run: npm ci
+
+      - name: Revisión de Tipos (TypeScript)
+        run: npm run type-check
+
+      - name: Revisión de Estilo (Lint)
+        run: npm run lint
+
+      - name: Ejecutar Tests Unitarios (Jest)
+        run: npm test
+
+      - name: Verificar Construcción (Build)
+        run: npm run build
+        env:
+          # Next.js build sometimes needs these dummy env vars if they are used at build time
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+          REDIS_URL: "redis://localhost:6379"
+          NEXT_PUBLIC_API_URL: "http://localhost:3000"

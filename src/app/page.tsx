@@ -13,5 +13,6 @@
 import HealthDashboard from './components/HealthDashboard';
 
 export default function HealthDashboardPage() {
-  return <HealthDashboard />;
+  const healthKey = process.env.X_HEALTH_KEY;
+  return <HealthDashboard healthKey={healthKey} />;
 }

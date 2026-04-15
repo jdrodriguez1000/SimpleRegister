@@ -130,15 +130,15 @@ const HEALTH_RETRY_CONFIG: RetryConfig = {
 // Consume /api/v1/health real vía fetchHealthWithRetry (TSK-I1-F03-G).
 // =============================================================================
 
-export function useHealth(): UseHealthReturn {
+export function useHealth(apiKey?: string): UseHealthReturn {
   const [state, setState] = useState<HealthState>(getInitialState);
-
+ 
   const executeFetch = useCallback(() => {
     setState(prev => ({ ...prev, uiState: 'loading' }));
-
+ 
     const controller = new AbortController();
-
-    fetchHealthWithRetry({ signal: controller.signal }, HEALTH_RETRY_CONFIG)
+ 
+    fetchHealthWithRetry({ apiKey, signal: controller.signal }, HEALTH_RETRY_CONFIG)
       .then(({ data }) => {
         setState(prev => applyHealthResponse(prev, data));
       })

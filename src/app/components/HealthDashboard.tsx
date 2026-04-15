@@ -26,8 +26,12 @@ import type { ServiceName } from '@/types/health';
 
 const SERVICES: ServiceName[] = ['database', 'redis', 'email_service', 'captcha_service'];
 
-export default function HealthDashboard() {
-  const { state, refetch } = useHealth();
+interface Props {
+  healthKey?: string;
+}
+
+export default function HealthDashboard({ healthKey }: Props) {
+  const { state, refetch } = useHealth(healthKey);
   const { uiState, data, slaLevel, error } = state;
 
   // --- Estados idle / loading: skeleton ---

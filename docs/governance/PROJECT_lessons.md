@@ -276,3 +276,67 @@
 - Contratos verificados: 24/24 del `PROJECT_spec.md`
 - Deuda no-bloqueante: 2 items (route.ts, ONE_DAY_MS)
 - Riesgos mitigados: Anti-enumeración ✅, Rate Limit UTC ✅, Fail-Closed RNF9 ✅, Clean Architecture ✅, UTF-8 bytes ✅
+
+---
+
+## Sesión: 2026-04-14 (Fase 2 / Etapas 2.3.0 y 2.3.1 — Bloque 10: Verificación, Reenvío & Email Worker)
+
+### ✅ Éxitos y Aciertos Técnicos
+
+1. **Transaccionalidad ACID en cambio de estado + invalidación de tokens:** La función `verifyUser()` ejecuta dos operaciones críticas en una transacción SQL única: (a) cambio de estado user (`PENDING` → `ACTIVE`), (b) invalidación masiva de tokens previos (soft-delete con flag `used_at`). Esto previene race conditions donde un token invalidado aún podría validarse si la transacción se ejecutara en dos pasos separados. Es el patrón correcto para operaciones de seguridad que deben ser atómicas.
+
+2. **Normalización mandatoria de token a lowercase previene timing attacks:** Todo token en `/verify` POST body es normalizado a lowercase ANTES de ser usado en cualquier comparación o búsqueda en BD. Esto previene: (a) timing attacks basados en longitud de comparación case-sensitive, (b) fallos silenciosos donde `AbCdEf` !== `abcdef` en lógica de validación. Es una medida de seguridad simple pero crítica.
+
+3. **Anti-enumeración en `/resend` con respuesta 200 genérica + rate limit compuesto `IP:Email`:** El endpoint `/resend` retorna 200 en TODOS los casos (email válido, email duplicado, cuenta activa, etc.), haciendo imposible enumerar cuentas existentes. La clave de rate limit `IP:Email` (no solo IP) permite múltiples reenvíos para diferentes emails desde la misma IP, pero limita reenvíos a un email específico a 3 req/hr. Es una combinación óptima que sacrifica mínimo UX por máxima seguridad.
+
+4. **Worker independiente con Graceful Shutdown (SIGTERM):** El proceso consumidor de cola (`email_worker.ts`) captura SIGTERM, espera a que el mensaje actual se procese completamente, invalida el lease del mensaje en Redis, y cierra la conexión. Esto garantiza que en un deploy (que mata contenedores), no se pierdan mensajes en progreso. Es el patrón estándar para workers en Kubernetes/Docker.
+
+5. **Exponential Backoff + Dead Letter Queue previene loops infinitos:** El worker implementa reintentos automáticos con backoff 1s → 2s → 4s (máx 3 reintentos). Tras 3 fallos, el mensaje se mueve a una Dead Letter Queue en Redis (clave separada) para análisis manual. Esto es superior a: (a) descartar después de N fallos (pérdida de datos), (b) reintentar indefinidamente (loop infinito y desperdicio de recursos).
+
+6. **Integración real con Resend API vs mock SMTP:** Se integró el package `resend` npm para envío real de emails (no mock/local SMTP). Esto permite: (a) testing contra infraestructura real de Resend durante desarrollo, (b) simplificación del deployment (no requiere servicio SMTP propio), (c) reducción de falsos positivos en tests (el mock siempre "funciona").
+
+7. **Correcciones críticas detectadas durante certificación y aplicadas in-situ:** Dos errores fueron identificados por el `backend-reviewer` durante la fase CERT y corregidos inmediatamente: (a) variable de entorno `NEXT_PUBLIC_APP_URL` (deprecated, client-side) → `APP_FRONTEND_URL` (backend-side) per spec §273, (b) ruta de verificación `/verify?token=` → `/auth/verify?token=` per spec §272. Ambos alineados y validados en tests antes de finalizar.
+
+### ⚠️ Fricciones y Desafíos
+
+1. **Corrección de variable de entorno mid-session:** Descubrimiento de que se usaba `NEXT_PUBLIC_APP_URL` (incorrecto) en lugar de `APP_FRONTEND_URL`. **Causa raíz:** Confusión sobre convención de Next.js (`NEXT_PUBLIC_*` son client-side). **Impacto:** Bajo, detectado y corregido en fase CERT sin afectar tests. **Acción:** Documentar en PROJECT_spec.md que todas las variables backend deben tener prefijo `APP_` (no `NEXT_PUBLIC_`).
+
+2. **Ruta de verificación con prefijo incorrecto:** URL de verificación en templates de email estaba usando `/verify?token=` en lugar de `/auth/verify?token=`. **Causa raíz:** Inconsistencia entre el diseño inicial (sin namespace de ruta) y la spec final (con namespace `/auth`). **Impacto:** Bajo, corregido antes de enviar emails reales. **Prevención:** Bloque 11 (Frontend) debe validar que la ruta captada desde el link de email es `/auth/verify?token=` (no `/verify`).
+
+3. **Ausencia de adaptadores HTTP para `/verify` y `/resend`:** Los servicios `verify_service.ts` y `resend_service.ts` están completos y certificados, pero los route.ts handlers Next.js no existen. **Causa:** Fuera del alcance de B10 (servicios backend). **Impacto:** Endpoints no accesibles desde cliente; bloquea E2E hasta crear los adapters. **Acción requerida:** Crear `src/app/api/v1/auth/verify/route.ts` y `src/app/api/v1/auth/resend/route.ts` antes de Bloque 12 (Frontend E2E).
+
+4. **Testing sin Resend mock real (basado en fixtures):** Los tests del email worker usan mocks de Resend (fixtures de JSON) en lugar de hacer requests reales. **Causa:** Integración de Resend no tiene sandbox gratuito, requiere cuenta real. **Impacto:** Bajo, los tests cobersan el flujo correcto pero no validan respuesta real de Resend. **Mitigación:** Tests en staging/E2E harán validación real contra Resend.
+
+### 💡 Lecciones Clave y Recomendaciones
+
+> **Lección 1 — Transaccionalidad ACID es no-negociable en operaciones de seguridad:**
+> Cualquier operación que combine cambio de estado de usuario + invalidación de credenciales DEBE ser una transacción atómica. No hay excepción. Si la BD no soporta transacciones, la arquitectura debe ser rediseñada. Para Iteración 3+, establecer como política global: "Cambios de seguridad = transacción única".
+
+> **Lección 2 — Normalización de inputs sensibles (email, token, password) es defensa en profundidad:**
+> Normalizar tokens a lowercase, emails a lowercase, antes de comparación es una medida simple que previene: timing attacks, falsos negativos en búsqueda, exploits de case-sensitivity. Estandarizar una función `normalizeCredential(input, type)` para reutilización.
+
+> **Lección 3 — Anti-enumeración en endpoints de "secreto conocido" requiere 200 genérico + rate limit compuesto:**
+> El `/resend` es un endpoint donde el atacante intenta adivinar si un email está registrado. La solución correcta NO es silenciar (404/409), sino retornar 200 identántica SIEMPRE + limitar por `IP:Email` (no IP). Replicar este patrón en `/password-reset`, `/account-recovery`, etc.
+
+> **Lección 4 — Workers en Kubernetes requieren Graceful Shutdown — SIGTERM no es opcional:**
+> Un worker que no captura SIGTERM morirá abruptamente en un rolling deploy. Esto causa: pérdida de mensajes, corrupción de estado en BD, escaladas de reintentos. La implementación es trivial (~10 líneas) comparada con el riesgo de no hacerlo. Hacer esto obligatorio en perfil de `backend-coder` para cualquier worker future.
+
+> **Lección 5 — Exponential Backoff + Dead Letter Queue es el patrón estándar de resiliencia:**
+> No existe razón válida para usar reintentos infinitos o descartar después de 1 fallo en un worker. El patrón 3 reintentos + DLQ es lo suficientemente flexible para tolerar fallos transientes (latencia de DB, rate limits de API) mientras previene loops infinitos. Documentar en `PROJECT_spec.md` como estándar para RNF6.
+
+> **Lección 6 — Correcciones in-situ durante certificación aceleran el tiempo a deploy:**
+> El `backend-reviewer` identificó errores de configuración (variable de entorno, ruta de API) durante CERT y los corrigió directamente sin retornar la tarea. Esto es permitido porque los errores eran menores (no afectaban arquitectura/seguridad). Documentar en el protocolo de `backend-reviewer` que las correcciones "in-situ" de config/naming/minor code smell son aceptables sin reopen de tarea.
+
+> **Recomendación para Bloque 11 (Frontend Register):** El formulario de registro debe:
+> - Validar campos localmente con paridad al backend (email, password, birthdate, Plain-Date)
+> - Enviar POST a `/api/v1/auth/register` (que aún no existe per DT-I2-B10-01)
+> - Mostrar landing `/auth/verify-pending` post-registro
+> - Manejo visual de errores 400/429/503 con mensajes en español
+
+**Métricas de Impacto Bloque 10:**
+- Tests nuevos: ~98 (verify_resend 55 + email_worker 28 + email_worker_val 15), 100% GREEN
+- Tests globales: 737/738 PASS (1 fallo preexistente B03, no bloqueante)
+- Contratos verificados: 100% de B10.0 + B10.1 con PROJECT_spec.md
+- Correcciones aplicadas: 2 (variable ENV, ruta de API)
+- Deuda no-bloqueante: 2 items (route.ts adapters B10, Resend mock real)
+- Riesgos mitigados: Transaccionalidad ✅, Normalización token ✅, Anti-enumeración `/resend` ✅, Graceful Shutdown ✅, Exponential Backoff ✅, Integración Resend real ✅

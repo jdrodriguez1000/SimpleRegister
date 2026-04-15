@@ -302,41 +302,42 @@ graph TD
     - **DoD**: Certificación de cumplimiento 100% con la política de privacidad y esquema de respuesta 201/429 s/ PROJECT_spec.md; **validación de que los errores de registro (Under 18, Weak Password) cumplen con el SOP (Headers, Version, Timestamp)**.
 
 ### ## Bloque 10 — Verificación & Resend Logic (Backend) [Etapa 2.3.0]
-- [ ] `[TSK-I2-B03-R]` **Auth Workflows Red**: Crear tests unitarios para `/verify` y `/resend` incluyendo gestión de caos, seguridad de token y colisiones de estado.
+- [x] `[TSK-I2-B03-R]` **Auth Workflows Red**: Crear tests unitarios para `/verify` y `/resend` incluyendo gestión de caos, seguridad de token y colisiones de estado.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests fallan (RED); **assertion mandatoria de campos SOP (version, timestamp) en todas las respuestas de /verify y /resend**; **test case específico para colisión de cuenta ya activa en el flujo de reenvío**; validación de 405 Method Not Allowed en GET; test de **normalización de tokens** (lowercase); inclusión obligatoria de test case para **503 SYSTEM_DEGRADED** en rumbos críticos; **validación de rechazo (400/405) de tokens enviados via Query Param s/ Spec (L385)**; **test de seguridad confirma que los tokens filtrados en Query Param no quedan persistidos en logs de acceso**.
-- [ ] `[TSK-I2-B03-G1]` **Verify Account Impl**: Implementar lógica de activación de cuenta y transaccionalidad.
+- [x] `[TSK-I2-B03-G1]` **Verify Account Impl**: Implementar lógica de activación de cuenta y transaccionalidad.
     - **Agente responsable**: `backend-coder`
     - **DoD**: El estado del usuario cambia a `ACTIVE` tras éxito; **transaccionalidad (ACID) garantizada entre la activación del usuario e invalidación masiva de tokens (soft-delete mediante flag `used_at`)**; normalización mandatoria a lowercase en la entrada de /verify.
-- [ ] `[TSK-I2-B03-G2]` **Resend & Queue Impl**: Implementar lógica de reenvío limitado y persistencia de cola en Redis.
+- [x] `[TSK-I2-B03-G2]` **Resend & Queue Impl**: Implementar lógica de reenvío limitado y persistencia de cola en Redis.
     - **Agente responsable**: `backend-coder`
     - **DoD**: `/resend` emite 200 OK genérico; reenvío limitado (3/hr) **utilizando clave compuesta `IP:Email` en Redis**; **implementación de persistencia para la cola de correos (Redis-backed Queue)** para asegurar cumplimiento de RNF6 ante reinicios.
-- [ ] `[TSK-I2-B03-RF]` **Email Service Refactor**: Refactorizar Service de Email y maquetación de templates premium.
+- [x] `[TSK-I2-B03-RF]` **Email Service Refactor**: Refactorizar Service de Email y maquetación de templates premium.
     - **Agente responsable**: `backend-coder`
     - **DoD**: Captura de fallos SMTP con backoff exponencial s/ RNF6; maquetación de templates HTML premium para emails de verificación y reenvío; (Middleware I18N ya integrado en Bloque 8).
-- [ ] `[TSK-I2-B03-V]` **Workflow Integrity Val**: Ejecución de tests de ciclo de vida completo (Register -> Verify -> Login Attempt).
+- [x] `[TSK-I2-B03-V]` **Workflow Integrity Val**: Ejecución de tests de ciclo de vida completo (Register -> Verify -> Login Attempt).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Reporte confirma expiración de tokens tras 24h (mock clock); validación de imposibilidad de usar el mismo token dos veces (409 Already Verified); **test de normalización** confirma que tokens en Mixed-case son válidos tras conversión a lowercase; **confirmación de que tokens en URL fallan sistemáticamente**.
-- [ ] `[TSK-I2-B03-C]` **Auth Logic Certification**: Auditoría de lógica de negocio y resiliencia de mailer.
+- [x] `[TSK-I2-B03-C]` **Auth Logic Certification**: Auditoría de lógica de negocio y resiliencia de mailer.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Firma de cumplimiento con RNF6 y lógica de seguridad de tokens s/ PROJECT_spec.md; **verificación de atomicidad en la invalidación (soft-delete) de tokens**; **certificación SOP en respuestas 401/410/409**.
 
 ### ## Bloque 10.1 — Email Worker Process (Background Logic) [Etapa 2.3.1]
-- [ ] `[TSK-I2-B04-R]` **Worker Lifecycle Red**: Crear suite de tests para el consumidor de la cola de emails (Estado RED).
+- [x] `[TSK-I2-B04-R]` **Worker Lifecycle Red**: Crear suite de tests para el consumidor de la cola de emails (Estado RED).
     - **Agente responsable**: `backend-tester`
     - **DoD**: Tests de integración fallan por ausencia de proceso consumidor; validación de procesamiento de reintentos (Retry limit) y manejo de "Dead Letter Queue" ante fallos persistentes.
-- [ ] `[TSK-I2-B04-G]` **Worker Implementation Green**: Implementar proceso consumidor independiente que procese la cola de Redis y realice el envío SMTP real.
+- [x] `[TSK-I2-B04-G]` **Worker Implementation Green**: Implementar proceso consumidor independiente que procese la cola de Redis y realice el envío SMTP real.
     - **Agente responsable**: `backend-coder`
     - **DoD**: El proceso levanta como hilo/contenedor independiente; consume eventos de registro; implementa **Exponential Backoff** s/ RNF6; **gestión de señales SIGTERM para cierre gracioso (Graceful Shutdown) procesando el mensaje actual antes de salir**.
-- [ ] `[TSK-I2-B04-RF]` **Worker & Orchestration RF**: Configuración del servicio Worker en Docker y limpieza de lógica de transporte.
+- [x] `[TSK-I2-B04-RF]` **Worker & Orchestration RF**: Configuración del servicio Worker en Docker y limpieza de lógica de transporte.
     - **Agente responsable**: `devops-integrator`
     - **DoD**: `docker-compose.yml` actualizado con el servicio `worker`; uso de la misma imagen de la API pero con comando de entrada independiente (`npm run worker`); aislamiento de red y límites de RAM (max 128MB) configurados; desacoplamiento de la lógica de envío del transporte SMTP.
-- [ ] `[TSK-I2-B04-V]` **Worker Resilience Val**: Simular fallos de SMTP y reinicios del proceso.
+- [x] `[TSK-I2-B04-V]` **Worker Resilience Val**: Simular fallos de SMTP y reinicios del proceso.
     - **Agente responsable**: `backend-tester`
     - **DoD**: Evidencia de que los mensajes no se pierden tras un reinicio forzado del worker; el backoff se incrementa correctamente tras cada fallo; validación de cierre gracioso exitoso bajo carga.
-- [ ] `[TSK-I2-B04-C]` **Cloud Worker Cert**: Auditoría de orquestación y resiliencia de Workers.
+- [x] `[TSK-I2-B04-C]` **Cloud Worker Cert**: Auditoría de orquestación y resiliencia de Workers.
     - **Agente responsable**: `backend-reviewer`
     - **DoD**: Certificación de cumplimiento con RNF6 y aislamiento dockerizado; validación de cuotas de recursos s/ Proyecto.
+    - **Evidencia**: 98/98 tests GREEN (verify_resend.test.ts + email_worker.test.ts + email_worker_val.test.ts). Corrección aplicada: variable `APP_FRONTEND_URL` y ruta `/auth/verify` alineadas con PROJECT_spec.md §L272-273.
 
 ### ## Bloque 11 — Registro & Vistas de Soporte (Frontend) [Etapa 2.4.0]
 - [ ] `[TSK-I2-F01-R]` **Register/Pending Red**: Crear tests unitarios para campos (RNF1/RNF3) y vista de registro pendiente.

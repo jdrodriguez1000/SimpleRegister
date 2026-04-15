@@ -44,6 +44,46 @@ services:
       start_period: 40s
 
   # ---------------------------------------------------------------------------
+  # Servicio: worker (Email Queue Consumer)
+  # Proceso independiente que consume la cola de emails de Redis.
+  # Usa la misma imagen que app pero con comando de entrada independiente.
+  # Cuota RAM: 128MB | Sin puertos expuestos | Depende solo de Redis
+  # Trazabilidad: TSK-I2-B04-RF
+  # ---------------------------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: sr_worker
+    restart: unless-stopped
+    command: ["node", "src/lib/workers/run_worker.js"]
+    networks:
+      - app_network
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      EMAIL_QUEUE_KEY: email:queue
+      EMAIL_DLQ_KEY: email:dlq
+      EMAIL_RETRY_LIMIT: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
   # Servicio: db (PostgreSQL 16)
   # SEGURIDAD: Sin mapeo de puertos — solo accesible dentro de app_network
   # ---------------------------------------------------------------------------
@@ -51,7 +91,9 @@ services:
     image: postgres:16-alpine
     container_name: sr_db
     restart: unless-stopped
-    # SIN puertos expuestos al host — aislamiento total
+    # Habilitado para desarrollo local (host -> docker)
+    ports:
+      - "5432:5432"
     networks:
       - app_network
     environment:
@@ -92,7 +134,9 @@ services:
     image: redis:7-alpine
     container_name: sr_redis
     restart: unless-stopped
-    # SIN puertos expuestos al host — aislamiento total
+    # Habilitado para desarrollo local (host -> docker)
+    ports:
+      - "6379:6379"
     networks:
       - app_network
     command: >
