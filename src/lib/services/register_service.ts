@@ -16,12 +16,14 @@
  * Clean Architecture: no importa Next.js, no importa ORM.
  * Solo conoce los contratos de sus puertos (interfaces).
  */
-
 import { validateAge } from '@/src/lib/services/age_validation';
 import {
   createRegisterRateLimiter,
   type RateLimiterStore,
 } from '@/src/lib/middleware/register_rate_limiter';
+import { type UserRepository } from '@/src/lib/db/repositories/user_repository';
+import { hashPassword } from '@/src/lib/utils/password_hash';
+import { hashToken } from '@/src/lib/utils/token_hash';
 
 // =============================================================================
 // Contratos públicos
@@ -320,7 +322,8 @@ export async function registerUser(
     simulateEmailInCooldown?: boolean;
     simulateEmailFailure?: boolean;
   },
-  rateLimiter?: ReturnType<typeof createRegisterRateLimiter>
+  rateLimiter?: ReturnType<typeof createRegisterRateLimiter>,
+  userRepo?: UserRepository
 ): Promise<RegisterResult> {
   // ---- Construir rate limiter ----
   // Si simulateRedisFailure está activo, inyectar un store que siempre lanza error
@@ -429,14 +432,16 @@ export async function registerUser(
     };
   }
 
-  // ---- PASO 3: Política anti-enumeración (colisiones) ----
-  // En todos los escenarios de colisión, devolver 201 con datos dummy
-  const isCollision =
-    context.simulateExistingVerified ||
-    context.simulateExistingUnverified ||
+  // ---- PASO 3: Política anti-enumeración (colisiones reales o simuladas) ----
+  // Verificamos si el usuario ya existe en la base de datos o si hay una simulación activa
+  const existingUser = userRepo ? await userRepo.findByEmail(req.email) : null;
+  const isCollision = existingUser || 
+    context.simulateExistingVerified || 
+    context.simulateExistingUnverified || 
     context.simulateEmailInCooldown;
 
   if (isCollision) {
+    // Si el usuario existe, simulamos éxito para evitar enumeración (L9)
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     return {
       statusCode: 201,
@@ -447,21 +452,55 @@ export async function registerUser(
         message:
           'Registro exitoso. Se ha enviado un enlace de activación a su correo.',
         data: {
-          // UUID dummy generado en cada llamada — previene fingerprinting
-          user_id: newUuid(),
+          user_id: newUuid(), // ID dummy
           token_expires_at: expiresAt,
         },
       },
     };
   }
 
-  // ---- PASO 4: Registro nuevo ----
+  // ---- PASO 4: Registro persistente en DB ----
   const userId = newUuid();
+  const rawToken = newUuid();
+  const tokenHash = hashToken(rawToken);
+  const passwordHash = await hashPassword(req.password);
   const tokenExpiresAt = new Date(
     Date.now() + 24 * 60 * 60 * 1000
   ).toISOString();
 
-  // ---- Fallo de dispatch de email ----
+  if (userRepo) {
+    try {
+      await userRepo.create(
+        {
+          id: userId,
+          email: req.email,
+          passwordHash,
+          birthdate: req.birthdate,
+        },
+        {
+          userId,
+          tokenHash,
+          expiresAt: tokenExpiresAt,
+        }
+      );
+    } catch (dbError) {
+      // Si hay un error de DB (ej. colisión de última hora o caída), fail-closed
+      return {
+        statusCode: 503,
+        headers: buildSopHeaders(rateLimitHeaders),
+        body: {
+          ...buildSopBase(),
+          status: 'error',
+          error_code: 'SYSTEM_DEGRADED',
+          message: MESSAGES['SYSTEM_DEGRADED'],
+        },
+      };
+    }
+  }
+
+  // ---- PASO 5: Notificación (Dispatch real o simulado) ----
+  // Aquí se emitiría el evento para el Redis Queue real.
+  // Por ahora manejamos el flag de simulación para los tests existentes.
   if (context.simulateEmailFailure) {
     return {
       statusCode: 201,
@@ -480,7 +519,7 @@ export async function registerUser(
     };
   }
 
-  // ---- Respuesta 201 exitosa ----
+  // ---- Respuesta 201 exitosa real ----
   return {
     statusCode: 201,
     headers: buildSopHeaders(rateLimitHeaders),
